@@ -13,42 +13,164 @@ import sys
 
 class FallSubtypeClassifier:
     """
-    Classifies falls into five distinct patterns based on temporal skeleton tracking.
-    Uses relative displacement of keypoints over time to determine movement pattern.
+    Classifies detected falls into five movement-pattern categories using
+    dense optical flow analysis on the 112x112 frame buffer collected by C3D.
+    
+    This classifier does NOT require skeleton/pose models. It analyses the
+    actual pixel-level motion vectors in the frames surrounding the fall event
+    to determine the dominant direction and dynamics of the movement.
+    
+    Categories:
+        Forward Fall      — dominant downward+forward (increasing y, shrinking bbox)
+        Backward Fall     — dominant upward torso tilt then downward collapse
+        Sideways Fall     — dominant lateral (horizontal) displacement
+        Sudden Collapse   — very rapid vertical drop with minimal lateral motion
+        Loss of Balance   — oscillating / unstable motion before the fall
     """
-    def __init__(self):
-        self.classes = [
-            "Forward Fall",
-            "Backward Fall",
-            "Sideways Fall",
-            "Sudden Collapse Fall",
-            "Loss of Balance Fall"
-        ]
-        
-    def classify(self, keypoints_history):
-        """
-        keypoints_history: list of keypoints over time for a tracked person.
-        Returns string class name.
-        """
-        if not keypoints_history or len(keypoints_history) < 5:
-            return "Unable to classify — pose data unavailable"
-            
-        # Simplified heuristic based on CoM (center of mass) displacement
-        # (Assuming keypoints_history is a list of [x, y] coordinates for hips/shoulders)
-        # In a real implementation, this would compute velocity vectors and orientation.
-        try:
-            # We don't have actual tracked keypoints right now, so we simulate the logic.
-            # If actual keypoints were provided, we would calculate:
-            # 1. Vertical velocity -> Sudden Collapse
-            # 2. Lateral velocity -> Sideways
-            # 3. Oscillations -> Loss of Balance
-            # 4. Forward/Backward lean -> Forward/Backward Fall
-            pass
-        except Exception:
-            return "Uncertain Fall Type"
-            
-        return "Unable to classify — pose data unavailable"
 
+    CLASSES = [
+        "Forward Fall",
+        "Backward Fall",
+        "Sideways Fall",
+        "Sudden Collapse Fall",
+        "Loss of Balance Fall",
+    ]
+
+    def classify(self, frames):
+        """
+        Classify the fall subtype from a sequence of RGB frames (112×112).
+        
+        Args:
+            frames: list of numpy arrays, each (112, 112, 3) uint8 RGB.
+                    Should cover the window around the fall onset.
+        
+        Returns:
+            (class_name: str, confidence: float)
+        """
+        if frames is None or len(frames) < 6:
+            return "Uncertain Fall Type", 0.0
+
+        try:
+            # Convert to grayscale for optical flow
+            gray_frames = []
+            for f in frames:
+                if len(f.shape) == 3:
+                    g = cv2.cvtColor(f, cv2.COLOR_RGB2GRAY)
+                else:
+                    g = f
+                gray_frames.append(g)
+
+            # Compute dense optical flow between consecutive frames
+            dx_series = []  # mean horizontal displacement per frame-pair
+            dy_series = []  # mean vertical displacement per frame-pair
+            mag_series = []  # mean magnitude per frame-pair
+
+            for i in range(1, len(gray_frames)):
+                flow = cv2.calcOpticalFlowFarneback(
+                    gray_frames[i - 1], gray_frames[i],
+                    None, 0.5, 3, 15, 3, 5, 1.2, 0
+                )
+                fx, fy = flow[..., 0], flow[..., 1]
+                mag = np.sqrt(fx ** 2 + fy ** 2)
+
+                # Only consider regions with significant motion
+                motion_mask = mag > np.percentile(mag, 75)
+                if motion_mask.sum() < 10:
+                    dx_series.append(0.0)
+                    dy_series.append(0.0)
+                    mag_series.append(0.0)
+                    continue
+
+                dx_series.append(float(np.mean(fx[motion_mask])))
+                dy_series.append(float(np.mean(fy[motion_mask])))
+                mag_series.append(float(np.mean(mag[motion_mask])))
+
+            if not mag_series or max(mag_series) < 0.3:
+                return "Uncertain Fall Type", 0.0
+
+            dx_arr = np.array(dx_series)
+            dy_arr = np.array(dy_series)
+            mag_arr = np.array(mag_series)
+
+            # --- Feature extraction ---
+            total_dx = float(np.sum(dx_arr))        # cumulative horizontal motion
+            total_dy = float(np.sum(dy_arr))        # cumulative vertical motion (+ = downward)
+            abs_dx = float(np.sum(np.abs(dx_arr)))
+            abs_dy = float(np.sum(np.abs(dy_arr)))
+            peak_mag = float(np.max(mag_arr))
+            mean_mag = float(np.mean(mag_arr))
+
+            # Jitter / oscillation: how much the direction reverses
+            dx_sign_changes = int(np.sum(np.diff(np.sign(dx_arr)) != 0))
+            dy_sign_changes = int(np.sum(np.diff(np.sign(dy_arr)) != 0))
+            total_sign_changes = dx_sign_changes + dy_sign_changes
+
+            # Speed of onset: ratio of peak to mean magnitude
+            onset_ratio = peak_mag / max(mean_mag, 0.01)
+
+            # Lateral vs vertical dominance
+            lateral_ratio = abs_dx / max(abs_dx + abs_dy, 0.01)
+
+            # --- Classification rules ---
+            scores = {c: 0.0 for c in self.CLASSES}
+
+            # 1) Loss of Balance: high oscillation before falling
+            if total_sign_changes >= 5:
+                scores["Loss of Balance Fall"] += 3.0
+            elif total_sign_changes >= 3:
+                scores["Loss of Balance Fall"] += 1.5
+
+            # 2) Sudden Collapse: very rapid onset, mostly vertical
+            if onset_ratio > 2.5 and lateral_ratio < 0.4:
+                scores["Sudden Collapse Fall"] += 3.0
+            elif onset_ratio > 1.8 and lateral_ratio < 0.45:
+                scores["Sudden Collapse Fall"] += 1.5
+
+            # 3) Sideways Fall: dominant lateral motion
+            if lateral_ratio > 0.55:
+                scores["Sideways Fall"] += 3.0
+            elif lateral_ratio > 0.45:
+                scores["Sideways Fall"] += 1.5
+
+            # 4) Forward Fall: dominant downward vertical + positive dy
+            if total_dy > 0 and lateral_ratio < 0.5:
+                scores["Forward Fall"] += 2.0
+                if abs(total_dy) > abs(total_dx) * 1.2:
+                    scores["Forward Fall"] += 1.0
+
+            # 5) Backward Fall: initial upward motion then downward
+            if len(dy_arr) >= 4:
+                first_half_dy = np.mean(dy_arr[:len(dy_arr) // 2])
+                second_half_dy = np.mean(dy_arr[len(dy_arr) // 2:])
+                if first_half_dy < -0.3 and second_half_dy > 0.3:
+                    scores["Backward Fall"] += 3.0
+                elif total_dy < 0 and lateral_ratio < 0.45:
+                    scores["Backward Fall"] += 1.5
+
+            # Pick highest-scoring class
+            best_class = max(scores, key=scores.get)
+            best_score = scores[best_class]
+
+            # If all scores are zero, use simple direction heuristic
+            if best_score == 0.0:
+                if lateral_ratio > 0.5:
+                    best_class = "Sideways Fall"
+                elif total_dy > 0:
+                    best_class = "Forward Fall"
+                else:
+                    best_class = "Backward Fall"
+                best_score = 1.0
+
+            # Normalize confidence to [0, 1]
+            total_score = sum(scores.values())
+            confidence = best_score / max(total_score, 0.01)
+            confidence = min(1.0, max(0.3, confidence))  # clamp
+
+            return best_class, confidence
+
+        except Exception as e:
+            print(f"FallSubtypeClassifier error: {e}")
+            return "Uncertain Fall Type", 0.0
 
 
 class VideoProcessor:
@@ -128,17 +250,13 @@ class VideoProcessor:
         cv2.rectangle(frame, (badge_x, badge_y), (badge_x + badge_w + 50, badge_y + badge_h), badge_bg, -1)
         cv2.rectangle(frame, (badge_x, badge_y), (badge_x + badge_w + 50, badge_y + badge_h), (255, 255, 255), 1)
 
-        # FALL SUBTYPE LOGIC
+        # FALL SUBTYPE LOGIC (optical-flow based, no skeleton dependency)
         if is_fall:
-            if not self.skeleton_available:
-                status_text = f"FALL ({fall_prob*100:.0f}%)"
+            if self.detected_fall_type and self.detected_fall_type not in ("N/A", "Uncertain Fall Type"):
+                status_text = f"{self.detected_fall_type} ({fall_prob*100:.0f}%)"
             else:
-                if self.detected_fall_type and "Unable" not in self.detected_fall_type and "unavailable" not in self.detected_fall_type:
-                    status_text = f"{self.detected_fall_type} ({fall_prob*100:.0f}%)"
-                else:
-                    status_text = f"FALL ({fall_prob*100:.0f}%)"
+                status_text = f"FALL ({fall_prob*100:.0f}%)"
         else:
-            self.detected_fall_type = None
             status_text = f"NORMAL ({fall_prob*100:.0f}%)"
             
         cv2.putText(
@@ -256,12 +374,12 @@ class VideoProcessor:
 
                 if current_fall_prob >= fall_threshold and first_fall_time is None:
                     first_fall_time = current_time_sec
-                    
-                    if not self.skeleton_available:
-                        self.detected_fall_type = "Fall detected — subtype model unavailable"
-                    else:
-                        subtype_classifier = FallSubtypeClassifier()
-                        self.detected_fall_type = subtype_classifier.classify([])
+                    # Classify fall subtype using the actual 16-frame buffer
+                    # These are the same 112x112 RGB frames used by C3D
+                    subtype_classifier = FallSubtypeClassifier()
+                    fall_type_result = subtype_classifier.classify(list(rolling_buffer))
+                    self.detected_fall_type = fall_type_result[0]
+                    self._fall_type_confidence = fall_type_result[1]
 
             timestamps.append(current_time_sec)
             fall_probabilities.append(current_fall_prob)
@@ -326,15 +444,12 @@ class VideoProcessor:
         max_prob = float(np.max(fall_probabilities)) if fall_probabilities else 0.0
         is_fall_detected = max_prob >= fall_threshold
         
-        # Determine Fall Type
+        # Use the fall type classified during processing (from the optical flow analysis)
         detected_fall_type = "N/A"
-        if is_fall_detected:
-            if not self.skeleton_available:
-                detected_fall_type = "Fall detected — subtype model unavailable"
-            else:
-                subtype_classifier = FallSubtypeClassifier()
-                # Simulate passing keypoint history since skeleton pipeline is not fully hooked up in process_video
-                detected_fall_type = subtype_classifier.classify([])
+        fall_type_confidence = 0.0
+        if is_fall_detected and self.detected_fall_type:
+            detected_fall_type = self.detected_fall_type
+            fall_type_confidence = getattr(self, '_fall_type_confidence', 0.0)
 
         return {
             "output_video_path": output_video_path,
@@ -344,6 +459,7 @@ class VideoProcessor:
             "max_fall_probability": max_prob,
             "fall_detected_at_time": first_fall_time,
             "detected_fall_type": detected_fall_type,
+            "fall_type_confidence": fall_type_confidence,
             "total_frames": frame_idx,
             "duration_sec": duration_sec,
             "fps": orig_fps,

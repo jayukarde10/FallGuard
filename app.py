@@ -349,10 +349,13 @@ if page == "🎬 Main Dashboard":
                 </div>""", unsafe_allow_html=True)
             with m_col4:
                 fall_type = res.get('detected_fall_type', 'N/A') if res.get('is_fall_detected', False) else 'N/A'
+                fall_type_conf = res.get('fall_type_confidence', 0.0)
+                fall_type_display = fall_type.upper() if fall_type not in ('N/A', 'Uncertain Fall Type') else fall_type
+                conf_text = f" ({fall_type_conf*100:.0f}%)" if fall_type_conf > 0 else ""
                 st.markdown(f"""<div class="metric-card">
                     <div class="metric-label">Detected Fall Type</div>
-                    <div class="metric-value" style="font-size: 1.0rem;">{fall_type}</div>
-                    <div class="metric-sub">Skeleton-based movement classification</div>
+                    <div class="metric-value" style="font-size: 1.0rem;">{fall_type_display}{conf_text}</div>
+                    <div class="metric-sub">Optical flow motion analysis</div>
                 </div>""", unsafe_allow_html=True)
             # Secondary metrics
             st.markdown("<br>", unsafe_allow_html=True)
