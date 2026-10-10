@@ -1,0 +1,31 @@
+# Virtual Environments
+.venv/
+venv/
+ENV/
+aimlproject/
+
+# Python Cache
+__pycache__/
+*.py[cod]
+*$py.class
+*.so
+
+# Environment Variables
+.env
+.env.*
+
+# Model Weights
+*.h5
+
+# Dataset
+/ekramalam-GMDCSA24-A-Dataset-for-Human-Fall-Detection-in-Videos-5abac76/
+
+# Temporary Files and Output Videos
+*.raw.mp4
+*output*.mp4
+temp/
+
+# IDE and System Files
+.DS_Store
+.idea/
+.vscode/
