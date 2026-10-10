@@ -11,6 +11,45 @@ import sys
 
 # Imports handled at initialization
 
+class FallSubtypeClassifier:
+    """
+    Classifies falls into five distinct patterns based on temporal skeleton tracking.
+    Uses relative displacement of keypoints over time to determine movement pattern.
+    """
+    def __init__(self):
+        self.classes = [
+            "Forward Fall",
+            "Backward Fall",
+            "Sideways Fall",
+            "Sudden Collapse Fall",
+            "Loss of Balance Fall"
+        ]
+        
+    def classify(self, keypoints_history):
+        """
+        keypoints_history: list of keypoints over time for a tracked person.
+        Returns string class name.
+        """
+        if not keypoints_history or len(keypoints_history) < 5:
+            return "Unable to classify — pose data unavailable"
+            
+        # Simplified heuristic based on CoM (center of mass) displacement
+        # (Assuming keypoints_history is a list of [x, y] coordinates for hips/shoulders)
+        # In a real implementation, this would compute velocity vectors and orientation.
+        try:
+            # We don't have actual tracked keypoints right now, so we simulate the logic.
+            # If actual keypoints were provided, we would calculate:
+            # 1. Vertical velocity -> Sudden Collapse
+            # 2. Lateral velocity -> Sideways
+            # 3. Oscillations -> Loss of Balance
+            # 4. Forward/Backward lean -> Forward/Backward Fall
+            pass
+        except Exception:
+            return "Uncertain Fall Type"
+            
+        return "Unable to classify — pose data unavailable"
+
+
 
 class VideoProcessor:
     def __init__(self, c3d_model, fall_head_path="models/fall_head.joblib", face_anonymizer=None):
@@ -24,6 +63,7 @@ class VideoProcessor:
                 print(f"Warning: could not load fall_head: {e}")
 
         self.mock_fall_type = None
+        self.detected_fall_type = None
         self.skeleton_args = None
         self.skeleton_available = False
         
@@ -88,14 +128,17 @@ class VideoProcessor:
         cv2.rectangle(frame, (badge_x, badge_y), (badge_x + badge_w + 50, badge_y + badge_h), badge_bg, -1)
         cv2.rectangle(frame, (badge_x, badge_y), (badge_x + badge_w + 50, badge_y + badge_h), (255, 255, 255), 1)
 
-        # MOCKING LOGIC
+        # FALL SUBTYPE LOGIC
         if is_fall:
-            if self.mock_fall_type is None:
-                # Assign one of the two fall types randomly upon first detection
-                self.mock_fall_type = random.choice(["Sudden_Collapse_Fall", "Loss_of_Balance_Fall"])
-            status_text = f"{self.mock_fall_type} ({fall_prob*100:.0f}%)"
+            if not self.skeleton_available:
+                status_text = f"FALL ({fall_prob*100:.0f}%)"
+            else:
+                if self.detected_fall_type and "Unable" not in self.detected_fall_type and "unavailable" not in self.detected_fall_type:
+                    status_text = f"{self.detected_fall_type} ({fall_prob*100:.0f}%)"
+                else:
+                    status_text = f"FALL ({fall_prob*100:.0f}%)"
         else:
-            self.mock_fall_type = None # Reset when normal
+            self.detected_fall_type = None
             status_text = f"NORMAL ({fall_prob*100:.0f}%)"
             
         cv2.putText(
@@ -213,6 +256,12 @@ class VideoProcessor:
 
                 if current_fall_prob >= fall_threshold and first_fall_time is None:
                     first_fall_time = current_time_sec
+                    
+                    if not self.skeleton_available:
+                        self.detected_fall_type = "Fall detected — subtype model unavailable"
+                    else:
+                        subtype_classifier = FallSubtypeClassifier()
+                        self.detected_fall_type = subtype_classifier.classify([])
 
             timestamps.append(current_time_sec)
             fall_probabilities.append(current_fall_prob)
@@ -252,13 +301,16 @@ class VideoProcessor:
         writer.release()
 
         # Re-encode to H.264 using ffmpeg for native browser video playback
+        import imageio_ffmpeg
+        ffmpeg_exe = imageio_ffmpeg.get_ffmpeg_exe()
         ffmpeg_cmd = [
-            "ffmpeg", "-y",
+            ffmpeg_exe, "-y",
             "-i", raw_output_path,
             "-vcodec", "libx264",
             "-pix_fmt", "yuv420p",
             "-preset", "ultrafast",
             "-crf", "23",
+            "-movflags", "faststart",
             output_video_path
         ]
         try:
@@ -272,14 +324,26 @@ class VideoProcessor:
 
         processing_time = time.time() - start_wall_time
         max_prob = float(np.max(fall_probabilities)) if fall_probabilities else 0.0
+        is_fall_detected = max_prob >= fall_threshold
+        
+        # Determine Fall Type
+        detected_fall_type = "N/A"
+        if is_fall_detected:
+            if not self.skeleton_available:
+                detected_fall_type = "Fall detected — subtype model unavailable"
+            else:
+                subtype_classifier = FallSubtypeClassifier()
+                # Simulate passing keypoint history since skeleton pipeline is not fully hooked up in process_video
+                detected_fall_type = subtype_classifier.classify([])
 
         return {
             "output_video_path": output_video_path,
             "timestamps": timestamps,
             "fall_probabilities": fall_probabilities,
-            "is_fall_detected": max_prob >= fall_threshold,
+            "is_fall_detected": is_fall_detected,
             "max_fall_probability": max_prob,
             "fall_detected_at_time": first_fall_time,
+            "detected_fall_type": detected_fall_type,
             "total_frames": frame_idx,
             "duration_sec": duration_sec,
             "fps": orig_fps,

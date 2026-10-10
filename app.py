@@ -25,38 +25,54 @@ st.set_page_config(
 # Custom Styling (Dark theme, glassmorphism, modern typography)
 st.markdown("""
 <style>
-    @import url('https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@300;400;500;600;700;800&family=JetBrains+Mono:wght@400;600&display=swap');
+    @import url('https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;700&family=Inter:wght@400;500;600&display=swap');
 
-    html, body, [class*="css"] {
-        font-family: 'Plus Jakarta Sans', -apple-system, BlinkMacSystemFont, sans-serif;
+    html, body, p, span, div, label, input, button {
+        font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
+    }
+    
+    h1, h2, h3, h4, h5, h6 {
+        font-family: 'DM Sans', sans-serif !important;
     }
 
-    .main {
-        background: radial-gradient(circle at 10% 20%, rgba(18, 24, 38, 0.95) 0%, rgba(10, 13, 20, 1) 90%);
-        color: #e2e8f0;
+    /* Video Container Styling */
+    [data-testid="stVideo"] {
+        width: 100%;
+        max-height: 400px;
+        border-radius: 8px;
+        border: 1px solid #DDD6CA;
+        overflow: hidden;
+        background-color: #000000;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+    }
+    [data-testid="stVideo"] video {
+        width: 100%;
+        height: 100%;
+        object-fit: contain !important;
+        border-radius: 8px;
     }
 
     /* Hero Banner */
     .hero-container {
-        background: linear-gradient(135deg, rgba(30, 41, 59, 0.8) 0%, rgba(15, 23, 42, 0.9) 100%);
-        border: 1px solid rgba(255, 255, 255, 0.08);
-        border-radius: 16px;
+        background-color: #FFFFFF;
+        border: 1px solid #DDD6CA;
+        border-radius: 8px;
         padding: 24px 30px;
         margin-bottom: 24px;
-        box-shadow: 0 10px 30px -10px rgba(0, 0, 0, 0.5);
-        backdrop-filter: blur(12px);
+        box-shadow: 0 4px 12px rgba(0, 0, 0, 0.05);
     }
     .hero-title {
+        font-family: 'DM Sans', sans-serif;
         font-size: 2.1rem;
-        font-weight: 800;
-        background: linear-gradient(120deg, #38bdf8 0%, #818cf8 50%, #c084fc 100%);
-        -webkit-background-clip: text;
-        -webkit-text-fill-color: transparent;
+        font-weight: 700;
+        color: #191919;
         margin-bottom: 6px;
         letter-spacing: -0.5px;
     }
     .hero-subtitle {
-        color: #94a3b8;
+        color: #77736B;
         font-size: 1.05rem;
         margin-bottom: 12px;
         font-weight: 400;
@@ -66,58 +82,58 @@ st.markdown("""
         align-items: center;
         gap: 6px;
         padding: 5px 12px;
-        border-radius: 9999px;
+        border-radius: 4px;
         font-size: 0.8rem;
         font-weight: 600;
         margin-right: 8px;
-        border: 1px solid rgba(255, 255, 255, 0.12);
-        background: rgba(255, 255, 255, 0.04);
+        border: 1px solid #DDD6CA;
+        background: #F5F1E9;
+        color: #191919;
     }
-    .badge-blue { color: #38bdf8; border-color: rgba(56, 189, 248, 0.3); background: rgba(56, 189, 248, 0.08); }
-    .badge-purple { color: #a855f7; border-color: rgba(168, 85, 247, 0.3); background: rgba(168, 85, 247, 0.08); }
-    .badge-green { color: #34d399; border-color: rgba(52, 211, 153, 0.3); background: rgba(52, 211, 153, 0.08); }
+    .badge-blue { border-color: #D9795E; color: #D9795E; background: rgba(217, 121, 94, 0.1); }
+    .badge-purple { border-color: #77736B; color: #77736B; }
+    .badge-green { border-color: #DCE6DD; background: #DCE6DD; color: #191919; }
 
     /* Metric Cards */
     .metric-card {
-        background: rgba(30, 41, 59, 0.5);
-        border: 1px solid rgba(255, 255, 255, 0.08);
-        border-radius: 12px;
+        background-color: #FFFFFF;
+        border: 1px solid #DDD6CA;
+        border-radius: 8px;
         padding: 16px 20px;
-        box-shadow: 0 4px 16px rgba(0, 0, 0, 0.2);
-        backdrop-filter: blur(8px);
+        box-shadow: 0 2px 8px rgba(0, 0, 0, 0.02);
         transition: transform 0.2s ease, border-color 0.2s ease;
     }
     .metric-card:hover {
         transform: translateY(-2px);
-        border-color: rgba(255, 255, 255, 0.18);
+        border-color: #D9795E;
     }
     .metric-label {
         font-size: 0.82rem;
         text-transform: uppercase;
         letter-spacing: 0.8px;
-        color: #94a3b8;
+        color: #77736B;
         font-weight: 600;
         margin-bottom: 4px;
     }
     .metric-value {
         font-size: 1.6rem;
         font-weight: 700;
-        color: #f8fafc;
-        font-family: 'Plus Jakarta Sans', sans-serif;
+        color: #191919;
+        font-family: 'DM Sans', sans-serif;
     }
     .metric-sub {
         font-size: 0.8rem;
-        color: #64748b;
+        color: #77736B;
         margin-top: 4px;
     }
 
     /* Status Alert Banners */
     .alert-fall {
-        background: linear-gradient(135deg, rgba(239, 68, 68, 0.2) 0%, rgba(185, 28, 28, 0.3) 100%);
-        border: 1px solid rgba(239, 68, 68, 0.5);
-        border-radius: 12px;
+        background-color: #FEF2F2;
+        border: 1px solid #DC2626;
+        border-radius: 8px;
         padding: 16px 20px;
-        color: #fecaca;
+        color: #991B1B;
         display: flex;
         align-items: center;
         gap: 14px;
@@ -126,11 +142,11 @@ st.markdown("""
         margin: 12px 0;
     }
     .alert-safe {
-        background: linear-gradient(135deg, rgba(34, 197, 94, 0.15) 0%, rgba(21, 128, 61, 0.25) 100%);
-        border: 1px solid rgba(34, 197, 94, 0.4);
-        border-radius: 12px;
+        background-color: #DCE6DD;
+        border: 1px solid #A3B8A8;
+        border-radius: 8px;
         padding: 16px 20px;
-        color: #bbf7d0;
+        color: #191919;
         display: flex;
         align-items: center;
         gap: 14px;
@@ -141,18 +157,10 @@ st.markdown("""
 
     /* Code & Monospace */
     code, pre {
-        font-family: 'JetBrains Mono', monospace !important;
-    }
-
-    /* Tab styling */
-    .stTabs [data-baseweb="tab-list"] {
-        gap: 8px;
-    }
-    .stTabs [data-baseweb="tab"] {
-        border-radius: 8px;
-        padding: 8px 16px;
-        font-weight: 600;
-        font-size: 0.95rem;
+        background-color: #FFFFFF !important;
+        color: #191919 !important;
+        border: 1px solid #DDD6CA;
+        border-radius: 4px;
     }
 </style>
 """, unsafe_allow_html=True)
@@ -179,203 +187,124 @@ video_processor = VideoProcessor(c3d_model, "models/fall_head.joblib", face_anon
 
 
 # Sidebar Configuration
-st.sidebar.title("🛡️ FallGuard Controls")
-
-# Input Source
-st.sidebar.markdown("### 📂 Video Source")
-input_mode = st.sidebar.radio(
-    "Select Input Source",
-    ["GMDCSA24 Dataset", "Custom Video Upload"],
-    index=0
+st.sidebar.title("🛡️ FallGuard AI")
+with st.sidebar.expander("ℹ️ About FallGuard AI", expanded=False):
+    st.markdown("""
+        <div style="font-size: 0.9rem; color: #77736B;">
+            Intelligent Elderly Care Monitoring powered by the <b>C3D 3D-Convolutional Neural Network</b>, trained on the <b>GMDCSA24 Dataset</b> with real-time <b>Facial Anonymization</b>.
+        </div>
+        <div style="margin-top: 10px;">
+            <div class="badge-pill badge-blue" style="margin-bottom:4px; display:block;">🧠 C3D Spatiotemporal (78.4M)</div>
+            <div class="badge-pill badge-purple" style="margin-bottom:4px; display:block;">📁 GMDCSA24 Dataset</div>
+            <div class="badge-pill badge-green" style="display:block;">🛡️ OpenCV YuNet Face Blur</div>
+        </div>
+    """, unsafe_allow_html=True)
+st.sidebar.markdown("### 🧭 Navigation")
+page = st.sidebar.radio(
+    "Go to",
+    ["🎬 Main Dashboard", "🧠 Model Inspection", "📊 Dataset Explorer", "🛡️ Face Anonymization Lab", "📋 Incident & Compliance Audit"],
+    label_visibility="collapsed"
 )
-
-selected_video_path = None
-selected_meta = None
-
-if input_mode == "GMDCSA24 Dataset":
-    subjects = dataset.get_subjects()
-    selected_subject = st.sidebar.selectbox("Subject ID", subjects, index=0)
-
-    categories = dataset.get_categories()
-    selected_category = st.sidebar.selectbox("Action Class", categories, index=0)
-
-    videos = dataset.filter_videos(selected_subject, selected_category)
-    if videos:
-        video_options = [f"{v['file_name']} ({v['length_sec']:.0f}s)" for v in videos]
-        selected_vid_str = st.sidebar.selectbox("Video Clip", video_options, index=0)
-        selected_file_name = selected_vid_str.split(" ")[0]
-        selected_meta = dataset.get_video_record(selected_subject, selected_category, selected_file_name)
-        if selected_meta:
-            selected_video_path = selected_meta['video_path']
-    else:
-        st.sidebar.warning("No videos found for selection.")
-
-else:
-    uploaded_file = st.sidebar.file_uploader("Upload MP4 / AVI / MOV", type=["mp4", "avi", "mov"])
-    if uploaded_file is not None:
-        tfile = tempfile.NamedTemporaryFile(delete=False, suffix=".mp4")
-        tfile.write(uploaded_file.read())
-        tfile.flush()
-        selected_video_path = tfile.name
-        selected_meta = {
-            'subject': "Custom Subject",
-            'category': "User Upload",
-            'file_name': uploaded_file.name,
-            'video_path': selected_video_path,
-            'length_sec': 0.0,
-            'time_of_recording': "Unknown",
-            'attire': "Unknown",
-            'description': "User uploaded video clip",
-            'classes_raw': "Custom",
-            'intervals': [],
-            'fall_count': 0
-        }
 
 st.sidebar.markdown("---")
+with st.sidebar.expander("⚡ Model Inference Settings", expanded=False):
+    fall_threshold = st.slider("Fall Alert Sensitivity Threshold", min_value=0.20, max_value=0.85, value=0.50, step=0.05)
+    stride_frames = st.select_slider("Inference Sliding Window Stride (Frames)", options=[4, 6, 8, 12, 16], value=8)
 
-# Privacy & Face Blur Settings
-st.sidebar.markdown("### 🛡️ Privacy & Face Blur")
-enable_blur = st.sidebar.toggle("Enable Facial Anonymization", value=True)
+with st.sidebar.expander("🛡️ Privacy & Face Blur Settings", expanded=False):
+    enable_blur = st.toggle("Enable Facial Anonymization", value=True)
+    blur_type = "gaussian"
+    blur_strength = 45
+    face_padding = 0.25
+    conf_threshold = 0.50
+    if enable_blur:
+        blur_type_label = st.selectbox("Blur Technique", ["Gaussian Blur (Smooth)", "Pixelate (Mosaic)", "Solid Blackout Box", "Frosted Glass (Heavy)"], index=0)
+        type_map = {"Gaussian Blur (Smooth)": "gaussian", "Pixelate (Mosaic)": "pixelate", "Solid Blackout Box": "blackout", "Frosted Glass (Heavy)": "frosted"}
+        blur_type = type_map[blur_type_label]
+        blur_strength = st.slider("Blur Intensity", min_value=15, max_value=95, value=45, step=10)
+        face_padding = st.slider("Boundary Padding (%)", min_value=10, max_value=50, value=25, step=5) / 100.0
+        conf_threshold = st.slider("Face Detector Confidence", min_value=0.30, max_value=0.85, value=0.50, step=0.05)
 
-blur_type = "gaussian"
-blur_strength = 45
-face_padding = 0.25
-conf_threshold = 0.50
+selected_video_path = st.session_state.get("selected_video_path", None)
+selected_meta = st.session_state.get("selected_meta", None)
 
-if enable_blur:
-    blur_type_label = st.sidebar.selectbox(
-        "Blur Technique",
-        ["Gaussian Blur (Smooth)", "Pixelate (Mosaic)", "Solid Blackout Box", "Frosted Glass (Heavy)"],
-        index=0
-    )
-    type_map = {
-        "Gaussian Blur (Smooth)": "gaussian",
-        "Pixelate (Mosaic)": "pixelate",
-        "Solid Blackout Box": "blackout",
-        "Frosted Glass (Heavy)": "frosted"
-    }
-    blur_type = type_map[blur_type_label]
-
-    blur_strength = st.sidebar.slider("Blur Intensity", min_value=15, max_value=95, value=45, step=10)
-    face_padding = st.sidebar.slider("Boundary Padding (%)", min_value=10, max_value=50, value=25, step=5) / 100.0
-    conf_threshold = st.sidebar.slider("Face Detector Confidence", min_value=0.30, max_value=0.85, value=0.50, step=0.05)
-
-st.sidebar.markdown("---")
-
-# Fall Detection Hyperparameters
-st.sidebar.markdown("### ⚡ Model Inference Settings")
-fall_threshold = st.sidebar.slider(
-    "Fall Alert Sensitivity Threshold",
-    min_value=0.20, max_value=0.85, value=0.50, step=0.05,
-    help="Confidence threshold above which a fall alert is triggered."
-)
-stride_frames = st.sidebar.select_slider(
-    "Inference Sliding Window Stride (Frames)",
-    options=[4, 6, 8, 12, 16],
-    value=8,
-    help="Stride between C3D 16-frame evaluations. Smaller stride = higher temporal precision; larger stride = faster processing."
-)
-
-
-# Hero Section Banner
-st.markdown("""
-<div class="hero-container">
-    <div class="hero-title">🛡️ FallGuard AI: Spatiotemporal Fall Detection & Privacy Shield</div>
-    <div class="hero-subtitle">
-        Intelligent Elderly Care Monitoring powered by the <b>C3D 3D-Convolutional Neural Network</b>, trained on the <b>GMDCSA24 Dataset</b> with real-time <b>Facial Anonymization</b>.
-    </div>
-    <div>
-        <span class="badge-pill badge-blue">🧠 C3D Spatiotemporal Backbone (78.4M Params)</span>
-        <span class="badge-pill badge-purple">📁 GMDCSA24 Video Dataset (160 Videos)</span>
-        <span class="badge-pill badge-green">🛡️ OpenCV YuNet DNN Face Blur</span>
-    </div>
-</div>
-""", unsafe_allow_html=True)
-
-
-# Main Tabs Navigation
-tabs = st.tabs([
-    "🎬 Video Analysis & Inference",
-    "🛡️ Face Anonymization Lab",
-    "🧠 C3D Model Architecture",
-    "📊 GMDCSA24 Dataset Explorer",
-    "📋 Incident & Compliance Audit"
-])
-
-
-# ==========================================
-# TAB 1: VIDEO ANALYSIS & INFERENCE
-# ==========================================
-with tabs[0]:
+if page == "🎬 Main Dashboard":
+    st.markdown("## 🛡️ FallGuard AI Dashboard")
+    st.markdown("### 📂 Video Source")
+    col_src1, col_src2 = st.columns([1, 2.5])
+    with col_src1:
+        input_mode = st.radio("Select Input Source", ["GMDCSA24 Dataset", "Custom Video Upload"], index=0)
+    selected_video_path = None
+    selected_meta = None
+    with col_src2:
+        if input_mode == "GMDCSA24 Dataset":
+            c_s1, c_s2, c_s3 = st.columns(3)
+            with c_s1: subjects = dataset.get_subjects(); selected_subject = st.selectbox("Subject ID", subjects, index=0)
+            with c_s2: categories = dataset.get_categories(); selected_category = st.selectbox("Action Class", categories, index=0)
+            with c_s3:
+                videos = dataset.filter_videos(selected_subject, selected_category)
+                if videos:
+                    video_options = [f"{v['file_name']} ({v['length_sec']:.0f}s)" for v in videos]
+                    selected_vid_str = st.selectbox("Video Clip", video_options, index=0)
+                    selected_file_name = selected_vid_str.split(" ")[0]
+                    selected_meta = dataset.get_video_record(selected_subject, selected_category, selected_file_name)
+                    if selected_meta: selected_video_path = selected_meta['video_path']
+                else:
+                    st.warning("No videos found.")
+        else:
+            uploaded_file = st.file_uploader("Upload MP4 / AVI / MOV", type=["mp4", "avi", "mov"])
+            if uploaded_file is not None:
+                import tempfile
+                tfile = tempfile.NamedTemporaryFile(delete=False, suffix=".mp4")
+                tfile.write(uploaded_file.read())
+                tfile.flush()
+                selected_video_path = tfile.name
+                selected_meta = {'subject': "Custom", 'category': "User Upload", 'file_name': uploaded_file.name, 'video_path': selected_video_path, 'length_sec': 0.0, 'time_of_recording': "Unknown", 'attire': "Unknown", 'description': "User uploaded video", 'classes_raw': "Custom", 'intervals': [], 'fall_count': 0}
+    st.session_state["selected_video_path"] = selected_video_path
+    st.session_state["selected_meta"] = selected_meta
     if selected_video_path and os.path.exists(selected_video_path):
-        # Metadata banner card
-        with st.container():
-            col_m1, col_m2, col_m3, col_m4 = st.columns([1.5, 1.2, 1.5, 3])
-            with col_m1:
-                st.markdown(f"**Clip:** `{selected_meta['file_name']}`")
-                st.markdown(f"**Subject:** `{selected_meta['subject']}`")
-            with col_m2:
-                cat_badge = "🔴 Fall" if selected_meta['category'] == "Fall" else "🟢 ADL"
-                st.markdown(f"**Class:** {cat_badge}")
-                st.markdown(f"**Duration:** `{selected_meta['length_sec']:.1f}s`")
-            with col_m3:
-                st.markdown(f"**Lighting:** `{selected_meta['time_of_recording']}`")
-                st.markdown(f"**Attire:** `{selected_meta['attire']}`")
-            with col_m4:
-                st.markdown(f"**Scenario:** *{selected_meta['description']}*")
-                if selected_meta.get('intervals'):
-                    int_str = " | ".join([f"`{i['action']} ({i['start']}-{i['end']}s)`" for i in selected_meta['intervals']])
-                    st.markdown(f"**Ground Truth Segments:** {int_str}")
-
         st.markdown("<br>", unsafe_allow_html=True)
-
-        col_ctrl1, col_ctrl2 = st.columns([1.2, 3])
-        with col_ctrl1:
-            run_btn = st.button("🚀 Process & Analyze Video", type="primary", width="stretch")
-
-        # Session state key for results
+        run_btn = st.button("🚀 Process & Analyze Video", type="primary", width="stretch")
         res_key = f"result_{selected_meta['subject']}_{selected_meta['file_name']}_{enable_blur}_{blur_type}_{fall_threshold}_{stride_frames}"
-
         if run_btn:
             progress_bar = st.progress(0, text="Initializing spatiotemporal pipeline...")
-            status_text = st.empty()
-
-            out_dir = os.path.join(tempfile.gettempdir(), "fallguard_output")
+            import tempfile, time, os
+            out_dir = os.path.join(os.getcwd(), "fallguard_output")
             os.makedirs(out_dir, exist_ok=True)
             output_vid_path = os.path.join(out_dir, f"proc_{int(time.time())}_{selected_meta['file_name']}.mp4")
-
             def on_progress(curr, total, prob):
                 frac = min(1.0, curr / max(1, total))
                 status = "🚨 Fall Risk High" if prob >= fall_threshold else "🟢 Normal Motion"
                 progress_bar.progress(frac, text=f"Processing Frame {curr}/{total} ({frac*100:.0f}%) — {status} ({prob*100:.1f}%)")
-
             with st.spinner("Extracting 3D clips & applying privacy shield..."):
-                t_start = time.time()
-                res = video_processor.process_video(
-                    input_video_path=selected_video_path,
-                    output_video_path=output_vid_path,
-                    enable_blur=enable_blur,
-                    blur_type=blur_type,
-                    blur_strength=blur_strength,
-                    face_padding=face_padding,
-                    conf_threshold=conf_threshold,
-                    fall_threshold=fall_threshold,
-                    stride_frames=stride_frames,
-                    progress_callback=on_progress
-                )
+                res = video_processor.process_video(input_video_path=selected_video_path, output_video_path=output_vid_path, enable_blur=enable_blur, blur_type=blur_type, blur_strength=blur_strength, face_padding=face_padding, conf_threshold=conf_threshold, fall_threshold=fall_threshold, stride_frames=stride_frames, progress_callback=on_progress)
                 progress_bar.progress(1.0, text="Processing Complete!")
                 st.session_state[res_key] = res
                 st.session_state["latest_res"] = res
                 st.session_state["latest_meta"] = selected_meta
-
-        # Display results if available
         current_res = st.session_state.get(res_key, st.session_state.get("latest_res", None))
-
         if current_res is not None and os.path.exists(current_res.get("output_video_path", "")):
             res = current_res
             st.markdown("---")
-
-            # Fall Status Alert Banner
+            vid_col1, vid_col2 = st.columns(2)
+            with vid_col1:
+                st.markdown("#### 🛡️ Processed Video (Anonymized + HUD)")
+                if os.path.exists(res['output_video_path']) and os.path.getsize(res['output_video_path']) > 1000:
+                    # Pass the absolute path directly so Streamlit serves it via a /media URL with HTTP Range support
+                    st.video(res['output_video_path'], format="video/mp4")
+                    
+                    with open(res['output_video_path'], 'rb') as f:
+                        vid_bytes = f.read()
+                    st.download_button("⬇️ Download Anonymized MP4 Video", data=vid_bytes, file_name=f"fallguard_{selected_meta['file_name']}", mime="video/mp4", width="stretch")
+                else:
+                    st.error(f"Media Error: Processed output is missing or invalid. Check pipeline logs. Path: {res.get('output_video_path')}")
+            
+            with vid_col2:
+                st.markdown("#### 📹 Original Video")
+                if os.path.exists(selected_video_path):
+                    # Pass the absolute path directly
+                    st.video(selected_video_path, format="video/mp4")
+            st.markdown("<br>", unsafe_allow_html=True)
             if res['is_fall_detected']:
                 fall_time_msg = f"at <b>{res['fall_detected_at_time']:.2f}s</b>" if res['fall_detected_at_time'] else ""
                 st.markdown(f"""
@@ -397,87 +326,60 @@ with tabs[0]:
                     </div>
                 </div>
                 """, unsafe_allow_html=True)
-
-            # Metric Cards Row
-            m_col1, m_col2, m_col3, m_col4, m_col5 = st.columns(5)
+            # Primary metrics
+            m_col1, m_col2, m_col3, m_col4 = st.columns(4)
             with m_col1:
-                st.markdown(f"""
-                <div class="metric-card">
+                st.markdown(f"""<div class="metric-card">
                     <div class="metric-label">Fall Verdict</div>
-                    <div class="metric-value" style="color: {'#ef4444' if res['is_fall_detected'] else '#22c55e'};">
-                        {'FALL' if res['is_fall_detected'] else 'NORMAL'}
-                    </div>
-                    <div class="metric-sub">Peak: {res['max_fall_probability']*100:.1f}%</div>
-                </div>
-                """, unsafe_allow_html=True)
+                    <div class="metric-value" style="color: {'#ef4444' if res['is_fall_detected'] else '#22c55e'};">{'FALL' if res['is_fall_detected'] else 'NORMAL'}</div>
+                    <div class="metric-sub">Threshold: {fall_threshold*100:.0f}%</div>
+                </div>""", unsafe_allow_html=True)
             with m_col2:
                 onset_str = f"{res['fall_detected_at_time']:.2f}s" if res['fall_detected_at_time'] else "N/A"
-                st.markdown(f"""
-                <div class="metric-card">
+                st.markdown(f"""<div class="metric-card">
                     <div class="metric-label">Detection Time</div>
                     <div class="metric-value">{onset_str}</div>
                     <div class="metric-sub">Total: {res['duration_sec']:.1f}s</div>
-                </div>
-                """, unsafe_allow_html=True)
+                </div>""", unsafe_allow_html=True)
             with m_col3:
-                st.markdown(f"""
-                <div class="metric-card">
-                    <div class="metric-label">Faces Blurred</div>
-                    <div class="metric-value" style="color: #38bdf8;">{res['total_faces_blurred']}</div>
-                    <div class="metric-sub">{blur_type.title()} Mode</div>
-                </div>
-                """, unsafe_allow_html=True)
+                st.markdown(f"""<div class="metric-card">
+                    <div class="metric-label">Peak Confidence</div>
+                    <div class="metric-value">{res['max_fall_probability']*100:.1f}%</div>
+                    <div class="metric-sub">C3D Model</div>
+                </div>""", unsafe_allow_html=True)
             with m_col4:
-                st.markdown(f"""
-                <div class="metric-card">
-                    <div class="metric-label">Latency / FPS</div>
+                fall_type = res.get('detected_fall_type', 'N/A') if res.get('is_fall_detected', False) else 'N/A'
+                st.markdown(f"""<div class="metric-card">
+                    <div class="metric-label">Detected Fall Type</div>
+                    <div class="metric-value" style="font-size: 1.0rem;">{fall_type}</div>
+                    <div class="metric-sub">Skeleton-based movement classification</div>
+                </div>""", unsafe_allow_html=True)
+            # Secondary metrics
+            st.markdown("<br>", unsafe_allow_html=True)
+            s_col1, s_col2, s_col3 = st.columns(3)
+            with s_col1:
+                st.markdown(f"""<div class="metric-card">
+                    <div class="metric-label">Faces Blurred</div>
+                    <div class="metric-value" style="color: #D9795E;">{res['total_faces_blurred']}</div>
+                    <div class="metric-sub">Mode: {blur_type.title()}</div>
+                </div>""", unsafe_allow_html=True)
+            with s_col2:
+                st.markdown(f"""<div class="metric-card">
+                    <div class="metric-label">Processing Speed</div>
                     <div class="metric-value">{res['total_frames']/max(0.1, res['processing_time_sec']):.1f} FPS</div>
-                    <div class="metric-sub">{res['processing_time_sec']:.1f}s elapsed</div>
-                </div>
-                """, unsafe_allow_html=True)
-            with m_col5:
-                # Ground truth comparison
+                    <div class="metric-sub">Elapsed: {res['processing_time_sec']:.1f}s</div>
+                </div>""", unsafe_allow_html=True)
+            with s_col3:
                 is_gt_fall = selected_meta['category'] == 'Fall'
                 is_pred_fall = res['is_fall_detected']
                 match = (is_gt_fall == is_pred_fall)
                 match_label = "CORRECT (TP)" if (is_gt_fall and is_pred_fall) else ("CORRECT (TN)" if (not is_gt_fall and not is_pred_fall) else "DISCREPANCY")
-                st.markdown(f"""
-                <div class="metric-card">
-                    <div class="metric-label">Ground Truth</div>
-                    <div class="metric-value" style="color: {'#34d399' if match else '#f59e0b'};">{match_label}</div>
-                    <div class="metric-sub">Actual: {selected_meta['category']}</div>
-                </div>
-                """, unsafe_allow_html=True)
-
+                st.markdown(f"""<div class="metric-card">
+                    <div class="metric-label">Ground-Truth Evaluation</div>
+                    <div class="metric-value" style="color: {'#34d399' if match else '#f59e0b'}; font-size: 1.2rem;">{match_label}</div>
+                    <div class="metric-sub">Actual Label: {selected_meta['category']}</div>
+                </div>""", unsafe_allow_html=True)
             st.markdown("<br>", unsafe_allow_html=True)
-
-            # Video Player: Processed Anonymized Video vs Original
-            vid_col1, vid_col2 = st.columns(2)
-            with vid_col1:
-                st.markdown("#### 🛡️ Processed Video (Face Anonymized + HUD)")
-                if os.path.exists(res['output_video_path']):
-                    with open(res['output_video_path'], 'rb') as f:
-                        vid_bytes = f.read()
-                    st.video(vid_bytes)
-
-                    # Download button
-                    st.download_button(
-                        label="⬇️ Download Anonymized MP4 Video",
-                        data=vid_bytes,
-                        file_name=f"fallguard_{selected_meta['file_name']}",
-                        mime="video/mp4",
-                        width="stretch"
-                    )
-            with vid_col2:
-                st.markdown("#### 📹 Original Video (GMDCSA24 Dataset)")
-                if os.path.exists(selected_video_path):
-                    with open(selected_video_path, 'rb') as f:
-                        orig_bytes = f.read()
-                    st.video(orig_bytes)
-
-            st.markdown("<br>", unsafe_allow_html=True)
-
-            # Interactive Plotly Timeline Chart
             st.markdown("### 📈 Spatiotemporal Fall Confidence Timeline")
             fig = go.Figure()
 
@@ -487,9 +389,9 @@ with tabs[0]:
                 y=res['fall_probabilities'],
                 mode='lines',
                 name='C3D Fall Probability',
-                line=dict(color='#38bdf8', width=3),
+                line=dict(color='#D9795E', width=3),
                 fill='tozeroy',
-                fillcolor='rgba(56, 189, 248, 0.12)'
+                fillcolor='rgba(217, 121, 94, 0.12)'
             ))
 
             # Threshold line
@@ -529,20 +431,20 @@ with tabs[0]:
                         )
 
             fig.update_layout(
-                paper_bgcolor='rgba(15, 23, 42, 0.6)',
-                plot_bgcolor='rgba(15, 23, 42, 0.6)',
+                paper_bgcolor='#FFFFFF',
+                plot_bgcolor='#FFFFFF',
                 margin=dict(l=20, r=20, t=30, b=20),
                 height=320,
                 xaxis=dict(
                     title="Video Timestamp (seconds)",
-                    gridcolor='rgba(255, 255, 255, 0.08)',
-                    zerolinecolor='rgba(255, 255, 255, 0.1)'
+                    gridcolor='#DDD6CA',
+                    zerolinecolor='#DDD6CA'
                 ),
                 yaxis=dict(
                     title="Fall Probability (0.0 - 1.0)",
                     range=[0.0, 1.05],
-                    gridcolor='rgba(255, 255, 255, 0.08)',
-                    zerolinecolor='rgba(255, 255, 255, 0.1)'
+                    gridcolor='#DDD6CA',
+                    zerolinecolor='#DDD6CA'
                 ),
                 legend=dict(
                     orientation="h",
@@ -550,11 +452,22 @@ with tabs[0]:
                     y=1.02,
                     xanchor="right",
                     x=1,
-                    font=dict(color="#e2e8f0")
+                    font=dict(color="#191919")
                 ),
-                font=dict(family="Plus Jakarta Sans", color="#e2e8f0")
+                font=dict(family="Inter", color="#191919")
             )
             st.plotly_chart(fig, width="stretch")
+
+            with st.expander("ℹ️ Video Details & Ground-Truth Metadata"):
+                c_det1, c_det2 = st.columns(2)
+                with c_det1:
+                    st.markdown(f"**Clip:** `{selected_meta['file_name']}` | **Subject:** `{selected_meta['subject']}`")
+                    st.markdown(f"**Lighting:** `{selected_meta['time_of_recording']}` | **Attire:** `{selected_meta['attire']}`")
+                with c_det2:
+                    st.markdown(f"**Scenario:** *{selected_meta['description']}*")
+                    if selected_meta.get('intervals'):
+                        int_str = " | ".join([f"`{i['action']} ({i['start']}-{i['end']}s)`" for i in selected_meta['intervals']])
+                        st.markdown(f"**Ground Truth Segments:** {int_str}")
 
         else:
             # Placeholder before running
@@ -562,16 +475,221 @@ with tabs[0]:
             # Quick preview of raw video
             st.markdown("#### 📹 Video Preview")
             if os.path.exists(selected_video_path):
-                with open(selected_video_path, 'rb') as f:
-                    st.video(f.read())
+                st.video(selected_video_path, format="video/mp4")
+            
+            # Video details still available before processing
+            with st.expander("ℹ️ Video Details & Ground-Truth Metadata"):
+                c_det1, c_det2 = st.columns(2)
+                with c_det1:
+                    st.markdown(f"**Clip:** `{selected_meta['file_name']}` | **Subject:** `{selected_meta['subject']}`")
+                    st.markdown(f"**Lighting:** `{selected_meta['time_of_recording']}` | **Attire:** `{selected_meta['attire']}`")
+                with c_det2:
+                    st.markdown(f"**Scenario:** *{selected_meta['description']}*")
+                    if selected_meta.get('intervals'):
+                        int_str = " | ".join([f"`{i['action']} ({i['start']}-{i['end']}s)`" for i in selected_meta['intervals']])
+                        st.markdown(f"**Ground Truth Segments:** {int_str}")
     else:
         st.warning("Please select or upload a video file to begin.")
+elif page == "🧠 Model Inspection":
+    st.markdown("### 🧠 C3D Spatiotemporal Convolutional Neural Network")
+    st.markdown(
+        "Direct inspection of the deep learning architecture loaded from `weights.h5` (~320 MB)."
+    )
+
+    summary_data, total_params = get_model_summary("weights.h5")
+
+    c_p1, c_p2, c_p3 = st.columns(3)
+    with c_p1:
+        st.markdown(f"""
+        <div class="metric-card">
+            <div class="metric-label">Total Parameters</div>
+            <div class="metric-value" style="color: #D9795E;">{total_params:,}</div>
+            <div class="metric-sub">~78.4 Million Weights</div>
+        </div>
+        """, unsafe_allow_html=True)
+    with c_p2:
+        st.markdown(f"""
+        <div class="metric-card">
+            <div class="metric-label">Network Input</div>
+            <div class="metric-value">16 x 112 x 112</div>
+            <div class="metric-sub">3-Channel RGB Video Clip</div>
+        </div>
+        """, unsafe_allow_html=True)
+    with c_p3:
+        st.markdown(f"""
+        <div class="metric-card">
+            <div class="metric-label">Feature Vector</div>
+            <div class="metric-value" style="color: #77736B;">4,096-dim</div>
+            <div class="metric-sub">FC7 Spatiotemporal Embedding</div>
+        </div>
+        """, unsafe_allow_html=True)
+
+    st.markdown("<br>", unsafe_allow_html=True)
+
+    # Layer architecture breakdown table
+    st.markdown("#### 📋 Layer-by-Layer Weights Inspection (`weights.h5`)")
+    if summary_data:
+        df_summary = pd.DataFrame(summary_data)
+        st.dataframe(
+            df_summary,
+            width="stretch",
+            column_config={
+                "Layer Name": st.column_config.TextColumn("Layer", width="medium"),
+                "Weights & Shapes": st.column_config.TextColumn("Tensor Dimensions", width="large"),
+                "Parameters": st.column_config.NumberColumn("Parameters", format="%d")
+            }
+        )
+
+    st.markdown("<br>", unsafe_allow_html=True)
+
+    # Visualizing Weight Distributions
+    st.markdown("#### 📊 Weight Value Distribution Histogram")
+    selected_layer = st.selectbox(
+        "Select Layer to Inspect Tensor Distribution",
+        ["conv1", "conv2", "conv3a", "conv4a", "conv5b", "fc6", "fc7", "fc8"],
+        index=0
+    )
+    if hasattr(c3d_model, selected_layer):
+        w_tensor = getattr(c3d_model, selected_layer).weight.data.cpu().numpy().flatten()
+        # Subsample for fast plotting
+        sample_w = np.random.choice(w_tensor, size=min(15000, len(w_tensor)), replace=False)
+        fig_hist = go.Figure(data=[go.Histogram(
+            x=sample_w,
+            nbinsx=60,
+            marker_color='#D9795E',
+            opacity=0.85
+        )])
+        fig_hist.update_layout(
+            paper_bgcolor='#FFFFFF',
+            plot_bgcolor='#FFFFFF',
+            margin=dict(l=20, r=20, t=30, b=20),
+            height=280,
+            xaxis=dict(title=f"Weight Value ({selected_layer})", gridcolor='#DDD6CA'),
+            yaxis=dict(title="Frequency", gridcolor='#DDD6CA'),
+            font=dict(family="Inter", color="#191919")
+        )
+        st.plotly_chart(fig_hist, width="stretch")
 
 
-# ==========================================
-# TAB 2: FACE ANONYMIZATION LAB
-# ==========================================
-with tabs[1]:
+
+elif page == "📊 Dataset Explorer":
+    st.markdown("### 📊 GMDCSA24 Dataset Explorer")
+    st.markdown(
+        "*GMDCSA24: A Dataset for Human Fall Detection in Videos* (Alam et al., Zenodo 2024 / Data in Brief). "
+        "Contains multi-subject indoor activities of daily living (ADL) and simulated fall events across diverse attire and lighting."
+    )
+
+    stats = dataset.get_dataset_stats()
+    ds_c1, ds_c2, ds_c3, ds_c4 = st.columns(4)
+    with ds_c1:
+        st.markdown(f"""
+        <div class="metric-card">
+            <div class="metric-label">Total Video Clips</div>
+            <div class="metric-value">{stats['total_videos']}</div>
+            <div class="metric-sub">Across 4 Subjects</div>
+        </div>
+        """, unsafe_allow_html=True)
+    with ds_c2:
+        st.markdown(f"""
+        <div class="metric-card">
+            <div class="metric-label">Fall Incidents</div>
+            <div class="metric-value" style="color: #ef4444;">{stats['fall_videos']}</div>
+            <div class="metric-sub">Left, Right, Forward, Back</div>
+        </div>
+        """, unsafe_allow_html=True)
+    with ds_c3:
+        st.markdown(f"""
+        <div class="metric-card">
+            <div class="metric-label">ADL Control Clips</div>
+            <div class="metric-value" style="color: #22c55e;">{stats['adl_videos']}</div>
+            <div class="metric-sub">Sitting, Walking, Sleeping</div>
+        </div>
+        """, unsafe_allow_html=True)
+    with ds_c4:
+        st.markdown(f"""
+        <div class="metric-card">
+            <div class="metric-label">Average Duration</div>
+            <div class="metric-value">{stats['avg_duration']:.1f}s</div>
+            <div class="metric-sub">High-Speed Motion</div>
+        </div>
+        """, unsafe_allow_html=True)
+
+    st.markdown("<br>", unsafe_allow_html=True)
+
+    # Dataset Distribution Chart
+    if hasattr(dataset, 'df') and not dataset.df.empty:
+        df = dataset.df
+
+        c_d1, c_d2 = st.columns(2)
+        with c_d1:
+            st.markdown("##### Video Distribution by Subject and Category")
+            grp = df.groupby(['subject', 'category']).size().reset_index(name='count')
+            fig_bar = go.Figure()
+            for cat in ['Fall', 'ADL']:
+                sub_df = grp[grp['category'] == cat]
+                color = '#ef4444' if cat == 'Fall' else '#22c55e'
+                fig_bar.add_trace(go.Bar(
+                    x=sub_df['subject'],
+                    y=sub_df['count'],
+                    name=cat,
+                    marker_color=color
+                ))
+            fig_bar.update_layout(
+                barmode='group',
+                paper_bgcolor='#FFFFFF',
+                plot_bgcolor='#FFFFFF',
+                margin=dict(l=20, r=20, t=30, b=20),
+                height=280,
+                xaxis=dict(gridcolor='#DDD6CA'),
+                yaxis=dict(gridcolor='#DDD6CA'),
+                font=dict(family="Inter", color="#191919")
+            )
+            st.plotly_chart(fig_bar, width="stretch")
+
+        with c_d2:
+            st.markdown("##### Action Category Breakdown")
+            fig_pie = go.Figure(data=[go.Pie(
+                labels=['Fall Incidents', 'ADL (Daily Activities)'],
+                values=[stats['fall_videos'], stats['adl_videos']],
+                hole=0.55,
+                marker=dict(colors=['#ef4444', '#22c55e'])
+            )])
+            fig_pie.update_layout(
+                paper_bgcolor='#FFFFFF',
+                plot_bgcolor='#FFFFFF',
+                margin=dict(l=20, r=20, t=30, b=20),
+                height=280,
+                font=dict(family="Inter", color="#191919")
+            )
+            st.plotly_chart(fig_pie, width="stretch")
+
+        st.markdown("#### 🔍 Filterable Dataset Catalog")
+        filter_col1, filter_col2 = st.columns(2)
+        with filter_col1:
+            f_subj = st.multiselect("Filter by Subject", options=dataset.get_subjects(), default=dataset.get_subjects())
+        with filter_col2:
+            f_cat = st.multiselect("Filter by Category", options=['Fall', 'ADL'], default=['Fall', 'ADL'])
+
+        filtered_df = df[df['subject'].isin(f_subj) & df['category'].isin(f_cat)]
+
+        st.dataframe(
+            filtered_df[['subject', 'category', 'file_name', 'length_sec', 'time_of_recording', 'attire', 'description', 'classes_raw']],
+            width="stretch",
+            column_config={
+                "subject": "Subject",
+                "category": "Category",
+                "file_name": "File",
+                "length_sec": st.column_config.NumberColumn("Length (s)", format="%.1f"),
+                "time_of_recording": "Lighting",
+                "attire": "Attire",
+                "description": "Scenario Description",
+                "classes_raw": "Annotated Classes"
+            }
+        )
+
+
+
+elif page == "🛡️ Face Anonymization Lab":
     st.markdown("### 🛡️ Facial Anonymization & Privacy Laboratory")
     st.markdown(
         "Interactive comparison of OpenCV YuNet face detection and privacy-preserving filters across video frames."
@@ -662,213 +780,8 @@ with tabs[1]:
         st.info("Select a video in the sidebar to test face anonymization.")
 
 
-# ==========================================
-# TAB 3: C3D MODEL ARCHITECTURE
-# ==========================================
-with tabs[2]:
-    st.markdown("### 🧠 C3D Spatiotemporal Convolutional Neural Network")
-    st.markdown(
-        "Direct inspection of the deep learning architecture loaded from `weights.h5` (~320 MB)."
-    )
 
-    summary_data, total_params = get_model_summary("weights.h5")
-
-    c_p1, c_p2, c_p3 = st.columns(3)
-    with c_p1:
-        st.markdown(f"""
-        <div class="metric-card">
-            <div class="metric-label">Total Parameters</div>
-            <div class="metric-value" style="color: #38bdf8;">{total_params:,}</div>
-            <div class="metric-sub">~78.4 Million Weights</div>
-        </div>
-        """, unsafe_allow_html=True)
-    with c_p2:
-        st.markdown(f"""
-        <div class="metric-card">
-            <div class="metric-label">Network Input</div>
-            <div class="metric-value">16 x 112 x 112</div>
-            <div class="metric-sub">3-Channel RGB Video Clip</div>
-        </div>
-        """, unsafe_allow_html=True)
-    with c_p3:
-        st.markdown(f"""
-        <div class="metric-card">
-            <div class="metric-label">Feature Vector</div>
-            <div class="metric-value" style="color: #a855f7;">4,096-dim</div>
-            <div class="metric-sub">FC7 Spatiotemporal Embedding</div>
-        </div>
-        """, unsafe_allow_html=True)
-
-    st.markdown("<br>", unsafe_allow_html=True)
-
-    # Layer architecture breakdown table
-    st.markdown("#### 📋 Layer-by-Layer Weights Inspection (`weights.h5`)")
-    if summary_data:
-        df_summary = pd.DataFrame(summary_data)
-        st.dataframe(
-            df_summary,
-            width="stretch",
-            column_config={
-                "Layer Name": st.column_config.TextColumn("Layer", width="medium"),
-                "Weights & Shapes": st.column_config.TextColumn("Tensor Dimensions", width="large"),
-                "Parameters": st.column_config.NumberColumn("Parameters", format="%d")
-            }
-        )
-
-    st.markdown("<br>", unsafe_allow_html=True)
-
-    # Visualizing Weight Distributions
-    st.markdown("#### 📊 Weight Value Distribution Histogram")
-    selected_layer = st.selectbox(
-        "Select Layer to Inspect Tensor Distribution",
-        ["conv1", "conv2", "conv3a", "conv4a", "conv5b", "fc6", "fc7", "fc8"],
-        index=0
-    )
-    if hasattr(c3d_model, selected_layer):
-        w_tensor = getattr(c3d_model, selected_layer).weight.data.cpu().numpy().flatten()
-        # Subsample for fast plotting
-        sample_w = np.random.choice(w_tensor, size=min(15000, len(w_tensor)), replace=False)
-        fig_hist = go.Figure(data=[go.Histogram(
-            x=sample_w,
-            nbinsx=60,
-            marker_color='#818cf8',
-            opacity=0.85
-        )])
-        fig_hist.update_layout(
-            paper_bgcolor='rgba(15, 23, 42, 0.6)',
-            plot_bgcolor='rgba(15, 23, 42, 0.6)',
-            margin=dict(l=20, r=20, t=30, b=20),
-            height=280,
-            xaxis=dict(title=f"Weight Value ({selected_layer})", gridcolor='rgba(255, 255, 255, 0.08)'),
-            yaxis=dict(title="Frequency", gridcolor='rgba(255, 255, 255, 0.08)'),
-            font=dict(family="Plus Jakarta Sans", color="#e2e8f0")
-        )
-        st.plotly_chart(fig_hist, width="stretch")
-
-
-# ==========================================
-# TAB 4: GMDCSA24 DATASET EXPLORER
-# ==========================================
-with tabs[3]:
-    st.markdown("### 📊 GMDCSA24 Dataset Explorer")
-    st.markdown(
-        "*GMDCSA24: A Dataset for Human Fall Detection in Videos* (Alam et al., Zenodo 2024 / Data in Brief). "
-        "Contains multi-subject indoor activities of daily living (ADL) and simulated fall events across diverse attire and lighting."
-    )
-
-    stats = dataset.get_dataset_stats()
-    ds_c1, ds_c2, ds_c3, ds_c4 = st.columns(4)
-    with ds_c1:
-        st.markdown(f"""
-        <div class="metric-card">
-            <div class="metric-label">Total Video Clips</div>
-            <div class="metric-value">{stats['total_videos']}</div>
-            <div class="metric-sub">Across 4 Subjects</div>
-        </div>
-        """, unsafe_allow_html=True)
-    with ds_c2:
-        st.markdown(f"""
-        <div class="metric-card">
-            <div class="metric-label">Fall Incidents</div>
-            <div class="metric-value" style="color: #ef4444;">{stats['fall_videos']}</div>
-            <div class="metric-sub">Left, Right, Forward, Back</div>
-        </div>
-        """, unsafe_allow_html=True)
-    with ds_c3:
-        st.markdown(f"""
-        <div class="metric-card">
-            <div class="metric-label">ADL Control Clips</div>
-            <div class="metric-value" style="color: #22c55e;">{stats['adl_videos']}</div>
-            <div class="metric-sub">Sitting, Walking, Sleeping</div>
-        </div>
-        """, unsafe_allow_html=True)
-    with ds_c4:
-        st.markdown(f"""
-        <div class="metric-card">
-            <div class="metric-label">Average Duration</div>
-            <div class="metric-value">{stats['avg_duration']:.1f}s</div>
-            <div class="metric-sub">High-Speed Motion</div>
-        </div>
-        """, unsafe_allow_html=True)
-
-    st.markdown("<br>", unsafe_allow_html=True)
-
-    # Dataset Distribution Chart
-    if hasattr(dataset, 'df') and not dataset.df.empty:
-        df = dataset.df
-
-        c_d1, c_d2 = st.columns(2)
-        with c_d1:
-            st.markdown("##### Video Distribution by Subject and Category")
-            grp = df.groupby(['subject', 'category']).size().reset_index(name='count')
-            fig_bar = go.Figure()
-            for cat in ['Fall', 'ADL']:
-                sub_df = grp[grp['category'] == cat]
-                color = '#ef4444' if cat == 'Fall' else '#22c55e'
-                fig_bar.add_trace(go.Bar(
-                    x=sub_df['subject'],
-                    y=sub_df['count'],
-                    name=cat,
-                    marker_color=color
-                ))
-            fig_bar.update_layout(
-                barmode='group',
-                paper_bgcolor='rgba(15, 23, 42, 0.6)',
-                plot_bgcolor='rgba(15, 23, 42, 0.6)',
-                margin=dict(l=20, r=20, t=30, b=20),
-                height=280,
-                xaxis=dict(gridcolor='rgba(255, 255, 255, 0.08)'),
-                yaxis=dict(gridcolor='rgba(255, 255, 255, 0.08)'),
-                font=dict(family="Plus Jakarta Sans", color="#e2e8f0")
-            )
-            st.plotly_chart(fig_bar, width="stretch")
-
-        with c_d2:
-            st.markdown("##### Action Category Breakdown")
-            fig_pie = go.Figure(data=[go.Pie(
-                labels=['Fall Incidents', 'ADL (Daily Activities)'],
-                values=[stats['fall_videos'], stats['adl_videos']],
-                hole=0.55,
-                marker=dict(colors=['#ef4444', '#22c55e'])
-            )])
-            fig_pie.update_layout(
-                paper_bgcolor='rgba(15, 23, 42, 0.6)',
-                plot_bgcolor='rgba(15, 23, 42, 0.6)',
-                margin=dict(l=20, r=20, t=30, b=20),
-                height=280,
-                font=dict(family="Plus Jakarta Sans", color="#e2e8f0")
-            )
-            st.plotly_chart(fig_pie, width="stretch")
-
-        st.markdown("#### 🔍 Filterable Dataset Catalog")
-        filter_col1, filter_col2 = st.columns(2)
-        with filter_col1:
-            f_subj = st.multiselect("Filter by Subject", options=dataset.get_subjects(), default=dataset.get_subjects())
-        with filter_col2:
-            f_cat = st.multiselect("Filter by Category", options=['Fall', 'ADL'], default=['Fall', 'ADL'])
-
-        filtered_df = df[df['subject'].isin(f_subj) & df['category'].isin(f_cat)]
-
-        st.dataframe(
-            filtered_df[['subject', 'category', 'file_name', 'length_sec', 'time_of_recording', 'attire', 'description', 'classes_raw']],
-            width="stretch",
-            column_config={
-                "subject": "Subject",
-                "category": "Category",
-                "file_name": "File",
-                "length_sec": st.column_config.NumberColumn("Length (s)", format="%.1f"),
-                "time_of_recording": "Lighting",
-                "attire": "Attire",
-                "description": "Scenario Description",
-                "classes_raw": "Annotated Classes"
-            }
-        )
-
-
-# ==========================================
-# TAB 5: INCIDENT & COMPLIANCE AUDIT
-# ==========================================
-with tabs[4]:
+elif page == "📋 Incident & Compliance Audit":
     st.markdown("### 📋 Elder Care Incident Verification & Privacy Audit")
     st.markdown(
         "Exportable compliance certificate verifying spatiotemporal fall alert timestamps and GDPR/HIPAA facial anonymization."
