@@ -11,6 +11,14 @@ It integrates:
 
 ---
 
+## 🏗️ System Workflow Architecture
+
+<p align="center">
+  <img src="assets/workflow_architecture.jpg" alt="FallGuard AI End-to-End Workflow Architecture" width="850">
+</p>
+
+---
+
 ## 🌟 Key Features
 
 ### 1. Spatiotemporal Fall Detection (C3D + Calibrated Head)
