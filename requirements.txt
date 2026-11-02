@@ -1,0 +1,13 @@
+torch
+torchvision
+opencv-python
+streamlit
+plotly
+pandas
+numpy
+scikit-learn
+joblib
+h5py
+imageio-ffmpeg
+Pillow
+onnxruntime
