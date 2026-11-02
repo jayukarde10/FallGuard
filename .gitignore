@@ -29,3 +29,5 @@ temp/
 .DS_Store
 .idea/
 .vscode/
+fallguard_output/
+*.zip

@@ -1,0 +1,403 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<title>FallGuard AI - End-to-End System Documentation</title>
+<style>
+  @page {
+    size: A4;
+    margin: 18mm 16mm 18mm 16mm;
+    @bottom-right {
+      content: counter(page);
+    }
+  }
+  body {
+    font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+    color: #1f2937;
+    background-color: #ffffff;
+    line-height: 1.5;
+    font-size: 10.5pt;
+    margin: 0;
+    padding: 0;
+  }
+  .header-box {
+    background: linear-gradient(135deg, #0f172a 0%, #1e3a8a 100%);
+    color: #ffffff;
+    padding: 24px 28px;
+    border-radius: 8px;
+    margin-bottom: 24px;
+  }
+  .header-box h1 {
+    margin: 0 0 6px 0;
+    font-size: 22pt;
+    font-weight: 700;
+    letter-spacing: -0.5px;
+  }
+  .header-box .subtitle {
+    font-size: 11pt;
+    color: #93c5fd;
+    margin: 0 0 12px 0;
+  }
+  .header-box .meta-grid {
+    display: grid;
+    grid-template-columns: repeat(2, 1fr);
+    gap: 8px 16px;
+    font-size: 9pt;
+    border-top: 1px solid rgba(255, 255, 255, 0.2);
+    padding-top: 10px;
+    margin-top: 10px;
+  }
+  .header-box .meta-grid div {
+    color: #e2e8f0;
+  }
+  .header-box .meta-grid strong {
+    color: #ffffff;
+  }
+  h2 {
+    color: #0f172a;
+    font-size: 14pt;
+    border-bottom: 2px solid #2563eb;
+    padding-bottom: 5px;
+    margin-top: 24px;
+    margin-bottom: 12px;
+    page-break-after: avoid;
+  }
+  h3 {
+    color: #1e40af;
+    font-size: 11.5pt;
+    margin-top: 16px;
+    margin-bottom: 6px;
+    page-break-after: avoid;
+  }
+  p {
+    margin: 0 0 8px 0;
+  }
+  .flow-card {
+    background-color: #f8fafc;
+    border: 1px solid #e2e8f0;
+    border-left: 4px solid #2563eb;
+    padding: 12px 16px;
+    margin-bottom: 12px;
+    border-radius: 4px;
+    page-break-inside: avoid;
+  }
+  .flow-card-title {
+    font-weight: 700;
+    color: #0f172a;
+    font-size: 10.5pt;
+    margin-bottom: 4px;
+  }
+  .badge {
+    display: inline-block;
+    padding: 2px 7px;
+    font-size: 8pt;
+    font-weight: 600;
+    border-radius: 4px;
+    margin-right: 6px;
+  }
+  .badge-primary { background: #dbeafe; color: #1e40af; }
+  .badge-success { background: #dcfce7; color: #166534; }
+  .badge-amber { background: #fef3c7; color: #92400e; }
+  .badge-purple { background: #f3e8ff; color: #6b21a8; }
+  .file-path {
+    font-family: "Consolas", "Courier New", monospace;
+    font-size: 8.5pt;
+    background: #f1f5f9;
+    color: #0f172a;
+    padding: 2px 5px;
+    border-radius: 3px;
+    border: 1px solid #cbd5e1;
+    word-break: break-all;
+  }
+  table {
+    width: 100%;
+    border-collapse: collapse;
+    margin: 12px 0;
+    font-size: 9pt;
+    page-break-inside: avoid;
+  }
+  th, td {
+    border: 1px solid #cbd5e1;
+    padding: 7px 10px;
+    text-align: left;
+    vertical-align: top;
+  }
+  th {
+    background-color: #f1f5f9;
+    color: #0f172a;
+    font-weight: 600;
+  }
+  tr:nth-child(even) td {
+    background-color: #f8fafc;
+  }
+  .diagram-box {
+    background: #0f172a;
+    color: #f8fafc;
+    padding: 14px 18px;
+    border-radius: 6px;
+    font-family: "Consolas", "Courier New", monospace;
+    font-size: 8pt;
+    line-height: 1.45;
+    white-space: pre;
+    overflow-x: auto;
+    margin: 12px 0 16px 0;
+    page-break-inside: avoid;
+  }
+  .page-break {
+    page-break-before: always;
+  }
+  ul, ol {
+    margin: 4px 0 10px 0;
+    padding-left: 20px;
+  }
+  li {
+    margin-bottom: 4px;
+  }
+  .footer-note {
+    margin-top: 24px;
+    padding-top: 8px;
+    border-top: 1px solid #e2e8f0;
+    font-size: 8pt;
+    color: #64748b;
+    text-align: center;
+  }
+</style>
+</head>
+<body>
+
+<div class="header-box">
+  <h1>🛡️ FallGuard AI</h1>
+  <div class="subtitle">Spatiotemporal Deep Learning Fall Detection & Privacy Preservation System</div>
+  <div class="meta-grid">
+    <div><strong>Domain:</strong> Computer Vision, Deep Learning, Healthcare IoT</div>
+    <div><strong>Core Framework:</strong> PyTorch, OpenCV 5.0, Scikit-Learn, Streamlit</div>
+    <div><strong>Primary Models:</strong> C3D (weights.h5, 78.4M) + YuNet ONNX Face Shield</div>
+    <div><strong>Secondary Model:</strong> PicoDet + ByteTrack + RTMPose + SGN Skeleton</div>
+  </div>
+</div>
+
+<h2>1. High-Level Executive Summary</h2>
+<p>
+  <strong>FallGuard AI</strong> is an automated, privacy-preserving video monitoring system tailored for elderly care facilities, hospitals, and assisted-living environments. Falls represent the leading cause of accidental injury and mortality in older adults. Conventional wearable alarms often fail due to poor compliance (dementia, forgetting to wear them, or battery drain), while standard CCTV cameras severely breach human dignity in bedrooms and private quarters.
+</p>
+<p>
+  FallGuard AI solves both dilemmas simultaneously through a dual-branch neural architecture:
+</p>
+<ol>
+  <li><strong>Spatiotemporal Action Recognition:</strong> Evaluates temporal velocity and posture shifts across 16-frame rolling video buffers using a 3D-CNN (C3D) and calibrated binary classification head.</li>
+  <li><strong>Autonomous Privacy Shield:</strong> Employs OpenCV 5.0 YuNet DNN to detect faces in real-time, enforcing irreversible privacy filters (Gaussian, Mosaic, Solid Blackout, Frosted Glass) with custom safety boundary padding before video is stored or shown.</li>
+  <li><strong>Fall Kinematics Classification:</strong> Uses dense Farneback optical flow to differentiate forward, backward, sideways, and sudden collapse dynamics without requiring invasive sensors.</li>
+</ol>
+
+<h2>2. End-to-End System Architectural Flow</h2>
+<div class="diagram-box">
+========================================================================================================
+                               FALLGUARD AI: END-TO-END DATAFLOW PIPELINE
+========================================================================================================
+
+ [Raw Video Ingestion] (Disk .mp4 / Live Webcam at 640x480, 720p, or 1080p via OpenCV cv2.VideoCapture)
+                                      |
+       +------------------------------+------------------------------+
+       |                                                             |
+       v (Branch A: Fall Detection)                                  v (Branch B: Privacy Shield)
+ [BGR -> RGB Color Conversion]                                 [Raw Resolution Frame Ingestion]
+       |                                                             |
+ [Spatial Resize to 112 x 112 Bilinear]                        [YuNet DNN Face Detection]
+       |                                                       (models/face_detection_yunet.onnx)
+ [16-Frame FIFO Rolling Buffer]                                      |
+       |                                                       [Bounding Box Margin Expansion (+25%)]
+ [Mean Subtraction: R-124, G-117, B-104]                             |
+       |                                                       [Privacy Filter Application]
+ [5D Tensor Permute: (1, 3, 16, 112, 112)]                     (Gaussian / Mosaic / Blackout / Frosted)
+       |                                                             |
+ [C3D Spatiotemporal Backbone (weights.h5)]                          |
+ (Extracts 4,096-dim FC7 Continuous Feature Vector)                  |
+       |                                                             |
+ [Calibrated Logistic Fall Head (fall_head.joblib)]                  |
+ (Calculates Fall Probability: P(Fall | x) in [0.0, 1.0])            |
+       |                                                             |
+       +------------------------------+------------------------------+
+                                      |
+                                      v
+                      [Threshold Gate: P(Fall) >= tau]
+                               /             \
+                             YES              NO
+                             /                 \
+        [Trigger Emergency Fall Alert]     [Normal Monitoring Status]
+                     |
+        [Farneback Dense Optical Flow Analysis]
+        (Classifies Subtype: Forward / Backward / Sideways / Collapse)
+                     |
+                     +----------------+
+                                      |
+                                      v
+                      [Composite Telemetry HUD Overlay]
+                      (Displays P(Fall) Bar, FPS, Subtype, Bounding Box)
+                                      |
+                      [H.264 FastStart FFmpeg Transcoding]
+                                      |
+                      [Streamlit Reactive Web Dashboard (app.py)]
+========================================================================================================
+</div>
+
+<div class="page-break"></div>
+
+<h2>3. Data Cleaning & Preprocessing Flow (Step-by-Step)</h2>
+
+<div class="flow-card">
+  <div class="flow-card-title"><span class="badge badge-primary">Step 1</span> Video Decoding & Frame Ingestion</div>
+  <p>Frames are ingested sequentially using OpenCV's <code>cv2.VideoCapture</code>. Hardware timestamps, native frame rate (FPS), and frame dimensions are parsed. Raw video frames arrive in BGR format.</p>
+  <div><strong>Code Location:</strong> <span class="file-path">C:\Users\Jay\AIML_FallDetection_jay\video_pipeline.py</span> (Lines 120-155)</div>
+</div>
+
+<div class="flow-card">
+  <div class="flow-card-title"><span class="badge badge-primary">Step 2</span> Color Space Conversion (BGR to RGB)</div>
+  <p>OpenCV's BGR format is converted to RGB via <code>cv2.cvtColor(frame, cv2.COLOR_BGR2RGB)</code>. This is required because pre-trained C3D convolution kernels and web browsers expect RGB channel ordering.</p>
+  <div><strong>Code Location:</strong> <span class="file-path">C:\Users\Jay\AIML_FallDetection_jay\video_pipeline.py</span> (Lines 160-175)</div>
+</div>
+
+<div class="flow-card">
+  <div class="flow-card-title"><span class="badge badge-primary">Step 3</span> Spatial Downsampling to 112 x 112 Pixels</div>
+  <p>Frames are resized to $112 \times 112$ pixels using bilinear interpolation (<code>cv2.INTER_LINEAR</code>). This exact resolution satisfies the spatial dimension constraints of C3D's 5 max-pooling stages ($112 \rightarrow 56 \rightarrow 28 \rightarrow 14 \rightarrow 7 \rightarrow 4$). Any other resolution causes dimension mismatches at the FC6 linear layer.</p>
+  <div><strong>Code Location:</strong> <span class="file-path">C:\Users\Jay\AIML_FallDetection_jay\video_pipeline.py</span> (Lines 180-195)</div>
+</div>
+
+<div class="flow-card">
+  <div class="flow-card-title"><span class="badge badge-primary">Step 4</span> Temporal FIFO Rolling Window Buffer (16 Frames)</div>
+  <p>A First-In-First-Out (FIFO) queue keeps exactly 16 consecutive frames. When frame $t$ arrives, it is appended; once the length reaches 17, frame $t-16$ is popped. This ensures $O(1)$ constant memory usage (~600 KB RAM) without leaking memory during continuous 24/7 monitoring.</p>
+  <div><strong>Code Location:</strong> <span class="file-path">C:\Users\Jay\AIML_FallDetection_jay\video_pipeline.py</span> (Lines 200-225)</div>
+</div>
+
+<div class="flow-card">
+  <div class="flow-card-title"><span class="badge badge-primary">Step 5</span> Channel-Wise Mean Subtraction Normalization</div>
+  <p>The buffer is converted to a <code>float32</code> array and centered using Sports-1M pretraining channel means:
+  <code>clip_arr = clip_arr - np.array([124.0, 117.0, 104.0], dtype=np.float32)</code>.
+  Centering values around zero accelerates feature convergence and matches original C3D activation statistics.</p>
+  <div><strong>Code Location:</strong> <span class="file-path">C:\Users\Jay\AIML_FallDetection_jay\video_pipeline.py</span> (Lines 230-245)</div>
+</div>
+
+<div class="flow-card">
+  <div class="flow-card-title"><span class="badge badge-primary">Step 6</span> Tensor Dimensional Permutation</div>
+  <p>PyTorch requires channels-first 3D convolutional format: <code>(Batch, Channels, Time, Height, Width)</code>. The array of shape <code>(16, 112, 112, 3)</code> is transposed to <code>(3, 16, 112, 112)</code> and unsqueezed to <code>(1, 3, 16, 112, 112)</code>.</p>
+  <div><strong>Code Location:</strong> <span class="file-path">C:\Users\Jay\AIML_FallDetection_jay\c3d_model.py</span> (Lines 80-100)</div>
+</div>
+
+<div class="flow-card">
+  <div class="flow-card-title"><span class="badge badge-primary">Step 7</span> Dataset Metadata Interval Cleaning & Parsing</div>
+  <p>Ground truth CSV annotations in GMDCSA24 (e.g. <code>"Falling (SW)[3.4 to 6]; Sitting[0 to 3.4]"</code>) are parsed with regular expressions into clean timestamps and boolean fall flags for verification.</p>
+  <div><strong>Code Location:</strong> <span class="file-path">C:\Users\Jay\AIML_FallDetection_jay\dataset_manager.py</span> (Lines 6-35)</div>
+</div>
+
+<h2>4. Core Algorithms & Technologies (Primary Pipeline)</h2>
+
+<table>
+  <thead>
+    <tr>
+      <th style="width: 20%;">Technology / Algorithm</th>
+      <th style="width: 45%;">What It Does & Mathematical Role</th>
+      <th style="width: 35%;">File Path in Project</th>
+    </tr>
+  </thead>
+  <tbody>
+    <tr>
+      <td><strong>C3D 3D-CNN Backbone</strong><br><span class="badge badge-primary">78.4M Params</span></td>
+      <td>Performs spatiotemporal feature extraction across space and time simultaneously. Traverses 8 Conv3D and 5 MaxPool3D layers to output a dense 4,096-dimensional FC7 embedding vector representing human action dynamics.</td>
+      <td><span class="file-path">C:\Users\Jay\AIML_FallDetection_jay\c3d_model.py</span><br><span class="file-path">C:\Users\Jay\AIML_FallDetection_jay\weights.h5</span></td>
+    </tr>
+    <tr>
+      <td><strong>Calibrated Logistic Fall Head</strong><br><span class="badge badge-success">Supervised ML</span></td>
+      <td>Regularized Logistic Regression ($C=0.5$, balanced class weighting) trained on GMDCSA24 embeddings. Applies sigmoid mapping $P(\text{Fall}) = 1 / (1 + \exp(-(w^T x + b)))$ to produce clinical probabilities.</td>
+      <td><span class="file-path">C:\Users\Jay\AIML_FallDetection_jay\train_head.py</span><br><span class="file-path">C:\Users\Jay\AIML_FallDetection_jay\models\fall_head.joblib</span></td>
+    </tr>
+    <tr>
+      <td><strong>YuNet ONNX Face Shield</strong><br><span class="badge badge-purple">Privacy DNN</span></td>
+      <td>Ultra-lightweight edge face detector operating on native resolution frames. Locates facial landmarks, expands bounding boxes by 20%-25% margin padding, and irreversibly renders Gaussian, Mosaic, Blackout, or Frosted Glass filters.</td>
+      <td><span class="file-path">C:\Users\Jay\AIML_FallDetection_jay\face_blur.py</span><br><span class="file-path">C:\Users\Jay\AIML_FallDetection_jay\models\face_detection_yunet.onnx</span></td>
+    </tr>
+    <tr>
+      <td><strong>Farneback Optical Flow</strong><br><span class="badge badge-amber">Motion Kinematics</span></td>
+      <td>Calculates dense 2D motion displacement fields $(dx, dy)$ across consecutive frames inside the fall onset window to categorize fall dynamics: Forward, Backward, Sideways, Sudden Collapse, or Loss of Balance.</td>
+      <td><span class="file-path">C:\Users\Jay\AIML_FallDetection_jay\video_pipeline.py</span><br>(Class <code>FallSubtypeClassifier</code>)</td>
+    </tr>
+    <tr>
+      <td><strong>FFmpeg H.264 Transcoder</strong><br><span class="badge badge-primary">Web Video</span></td>
+      <td>Converts raw OpenCV <code>mp4v</code> video streams into web-native H.264 (<code>libx264</code>, <code>yuv420p</code> pixel format) with <code>-movflags faststart</code> for zero-latency browser rendering.</td>
+      <td><span class="file-path">C:\Users\Jay\AIML_FallDetection_jay\video_pipeline.py</span><br>(Function <code>reencode_h264</code>)</td>
+    </tr>
+  </tbody>
+</table>
+
+<div class="page-break"></div>
+
+<h2>5. Secondary / Pose-Based Pipeline (in `Jay/` Folder)</h2>
+<p>
+  Your repository includes a secondary skeleton/pose-based fall detection system located in the <span class="file-path">C:\Users\Jay\AIML_FallDetection_jay\Jay\</span> directory. This pipeline detects human joints and recognizes falls via graph neural networks:
+</p>
+
+<table>
+  <thead>
+    <tr>
+      <th style="width: 22%;">Component</th>
+      <th style="width: 43%;">Function & Underlying Algorithm</th>
+      <th style="width: 35%;">File Path</th>
+    </tr>
+  </thead>
+  <tbody>
+    <tr>
+      <td><strong>PicoDet Detector</strong></td>
+      <td>Ultra-lightweight anchor-free object detector (<code>pico.onnx</code>). Detects human bounding boxes at 100+ FPS on edge CPUs.</td>
+      <td><span class="file-path">C:\Users\Jay\AIML_FallDetection_jay\Jay\PicoDet.py</span><br><span class="file-path">C:\Users\Jay\AIML_FallDetection_jay\Jay\pico.onnx</span></td>
+    </tr>
+    <tr>
+      <td><strong>ByteTrack Multi-Tracker</strong></td>
+      <td>Tracking-by-detection framework using Kalman filter velocity state estimation to maintain track IDs for multiple people across frames.</td>
+      <td><span class="file-path">C:\Users\Jay\AIML_FallDetection_jay\Jay\ByteTracker\byte_tracker.py</span><br><span class="file-path">C:\Users\Jay\AIML_FallDetection_jay\Jay\ByteTracker\kalman_filter.py</span></td>
+    </tr>
+    <tr>
+      <td><strong>RTMPose Estimator</strong></td>
+      <td>2D multi-person pose estimation (<code>rtmpose-small.onnx</code>) using SimCC (Simple Coordinate Classification) to extract 17 keypoint coordinates.</td>
+      <td><span class="file-path">C:\Users\Jay\AIML_FallDetection_jay\Jay\rtmpose-small.onnx</span></td>
+    </tr>
+    <tr>
+      <td><strong>SGN Backbone</strong></td>
+      <td>Semantics-Guided Neural Network modeling spatial joint-level correlations and temporal frame-level dynamics for skeleton action recognition.</td>
+      <td><span class="file-path">C:\Users\Jay\AIML_FallDetection_jay\Jay\models\SGN\backbone.py</span></td>
+    </tr>
+    <tr>
+      <td><strong>SGN Checkpoint</strong></td>
+      <td>Domain-Adapted trained PyTorch weights classifying skeleton sequences into <em>Normal</em> vs. <em>Fall</em>.</td>
+      <td><span class="file-path">C:\Users\Jay\AIML_FallDetection_jay\Jay\fall_detect944-DA.pth</span><br><span class="file-path">C:\Users\Jay\AIML_FallDetection_jay\Jay\label.txt</span></td>
+    </tr>
+  </tbody>
+</table>
+
+<h2>6. Evaluation Suites & Web Dashboard</h2>
+
+<h3>Evaluation Notebooks & Colab Scripts</h3>
+<ul>
+  <li><strong>Comprehensive Evaluation Notebook:</strong> <span class="file-path">C:\Users\Jay\AIML_FallDetection_jay\evaluate_model_performance.ipynb</span>
+    <br>Performs 28-metric clinical benchmarking (Accuracy, Recall, Specificity, F1, F2-score, MCC, Brier score, ROC-AUC, PR-AUC, and Leave-One-Subject-Out cross-validation across Subjects 1–4).
+  </li>
+  <li><strong>Google Colab Runner:</strong> <span class="file-path">C:\Users\Jay\AIML_FallDetection_jay\colab_evaluate.py</span>
+    <br>Complete script configured for Google Drive mounting and GPU execution with automated feature serialization to <code>dataset_features.npz</code>.
+  </li>
+</ul>
+
+<h3>Interactive Web Application (Streamlit)</h3>
+<p>
+  Implemented in <span class="file-path">C:\Users\Jay\AIML_FallDetection_jay\app.py</span> featuring 5 specialized tabs:
+</p>
+<ol>
+  <li><strong>Tab 1: Video Analysis & Live Telemetry:</strong> Real-time dual video player (raw vs. anonymized), risk gauges, and Plotly confidence timelines.</li>
+  <li><strong>Tab 2: Face Anonymization Lab:</strong> 4-way visual comparison workbench for Gaussian, Mosaic, Blackout, and Frosted Glass filters.</li>
+  <li><strong>Tab 3: C3D Model Architecture:</strong> Layer-by-layer parameter inspector and weight distribution histograms.</li>
+  <li><strong>Tab 4: GMDCSA24 Dataset Explorer:</strong> Filterable catalog across all 160 video clips and duration analytics.</li>
+  <li><strong>Tab 5: Compliance & Incident Audit:</strong> Exportable GDPR/HIPAA audit certificates recording timestamps and peak risk values.</li>
+</ol>
+
+<div class="footer-note">
+  FallGuard AI &copy; 2026. Generated for academic defense, viva examination, and technical reference.
+</div>
+
+</body>
+</html>

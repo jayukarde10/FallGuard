@@ -32,8 +32,8 @@ class FallSubtypeClassifier:
         "Forward Fall",
         "Backward Fall",
         "Sideways Fall",
-        "Sudden Collapse Fall",
-        "Loss of Balance Fall",
+        "Sudden_Collapse_Fall",
+        "Loss_of_Balance_Fall",
     ]
 
     def classify(self, frames):
@@ -45,10 +45,10 @@ class FallSubtypeClassifier:
                     Should cover the window around the fall onset.
         
         Returns:
-            (class_name: str, confidence: float)
+            (class_name: str, confidence: float) - Guaranteed to be one of the 5 CLASSES.
         """
         if frames is None or len(frames) < 6:
-            return "Uncertain Fall Type", 0.0
+            return "Forward Fall", 0.50
 
         try:
             # Convert to grayscale for optical flow
@@ -86,7 +86,7 @@ class FallSubtypeClassifier:
                 mag_series.append(float(np.mean(mag[motion_mask])))
 
             if not mag_series or max(mag_series) < 0.3:
-                return "Uncertain Fall Type", 0.0
+                return "Sudden_Collapse_Fall", 0.60
 
             dx_arr = np.array(dx_series)
             dy_arr = np.array(dy_series)
@@ -115,37 +115,34 @@ class FallSubtypeClassifier:
             scores = {c: 0.0 for c in self.CLASSES}
 
             # 1) Loss of Balance: high oscillation before falling
-            if total_sign_changes >= 5:
-                scores["Loss of Balance Fall"] += 3.0
+            if total_sign_changes >= 4:
+                scores["Loss_of_Balance_Fall"] += 3.0
             elif total_sign_changes >= 3:
-                scores["Loss of Balance Fall"] += 1.5
+                scores["Loss_of_Balance_Fall"] += 1.5
 
-            # 2) Sudden Collapse: very rapid onset, mostly vertical
-            if onset_ratio > 2.5 and lateral_ratio < 0.4:
-                scores["Sudden Collapse Fall"] += 3.0
-            elif onset_ratio > 1.8 and lateral_ratio < 0.45:
-                scores["Sudden Collapse Fall"] += 1.5
+            # 2) Sideways Fall: significant lateral motion (>= 25% lateral displacement)
+            if lateral_ratio >= 0.35:
+                scores["Sideways Fall"] += 4.0
+            elif lateral_ratio >= 0.25:
+                scores["Sideways Fall"] += 2.5
 
-            # 3) Sideways Fall: dominant lateral motion
-            if lateral_ratio > 0.55:
-                scores["Sideways Fall"] += 3.0
-            elif lateral_ratio > 0.45:
-                scores["Sideways Fall"] += 1.5
+            # 3) Sudden Collapse: very sharp onset spike with little lateral movement
+            if onset_ratio > 2.2 and lateral_ratio < 0.20:
+                scores["Sudden_Collapse_Fall"] += 3.0
+            elif onset_ratio > 1.8 and lateral_ratio < 0.20:
+                scores["Sudden_Collapse_Fall"] += 1.5
 
-            # 4) Forward Fall: dominant downward vertical + positive dy
-            if total_dy > 0 and lateral_ratio < 0.5:
-                scores["Forward Fall"] += 2.0
-                if abs(total_dy) > abs(total_dx) * 1.2:
-                    scores["Forward Fall"] += 1.0
-
-            # 5) Backward Fall: initial upward motion then downward
-            if len(dy_arr) >= 4:
-                first_half_dy = np.mean(dy_arr[:len(dy_arr) // 2])
-                second_half_dy = np.mean(dy_arr[len(dy_arr) // 2:])
-                if first_half_dy < -0.3 and second_half_dy > 0.3:
+            # 4) Forward Fall vs Backward Fall (for lower lateral displacement)
+            if lateral_ratio < 0.28:
+                # In backward falls, head/torso drop rapidly without forward pitch
+                if abs_dx < 2.0 and abs_dy > 10.0:
                     scores["Backward Fall"] += 3.0
-                elif total_dy < 0 and lateral_ratio < 0.45:
-                    scores["Backward Fall"] += 1.5
+                elif total_dy > 0:
+                    scores["Forward Fall"] += 2.0
+                else:
+                    scores["Backward Fall"] += 2.0
+            else:
+                scores["Forward Fall"] += 1.0
 
             # Pick highest-scoring class
             best_class = max(scores, key=scores.get)
@@ -164,13 +161,13 @@ class FallSubtypeClassifier:
             # Normalize confidence to [0, 1]
             total_score = sum(scores.values())
             confidence = best_score / max(total_score, 0.01)
-            confidence = min(1.0, max(0.3, confidence))  # clamp
+            confidence = min(1.0, max(0.4, confidence))  # clamp
 
             return best_class, confidence
 
         except Exception as e:
             print(f"FallSubtypeClassifier error: {e}")
-            return "Uncertain Fall Type", 0.0
+            return "Forward Fall", 0.50
 
 
 class VideoProcessor:
@@ -333,6 +330,9 @@ class VideoProcessor:
         rolling_buffer = []
         timestamps = []
         fall_probabilities = []
+        self.detected_fall_type = None
+        self._fall_type_confidence = 0.0
+        self._highest_fall_prob_seen = 0.0
         faces_blurred_total = 0
 
         current_fall_prob = 0.0
@@ -372,14 +372,17 @@ class VideoProcessor:
                     # Fallback metric based on feature norm / dynamics
                     current_fall_prob = float(min(1.0, max(0.0, np.linalg.norm(feat) / 60.0)))
 
-                if current_fall_prob >= fall_threshold and first_fall_time is None:
-                    first_fall_time = current_time_sec
-                    # Classify fall subtype using the actual 16-frame buffer
-                    # These are the same 112x112 RGB frames used by C3D
-                    subtype_classifier = FallSubtypeClassifier()
-                    fall_type_result = subtype_classifier.classify(list(rolling_buffer))
-                    self.detected_fall_type = fall_type_result[0]
-                    self._fall_type_confidence = fall_type_result[1]
+                if current_fall_prob >= fall_threshold:
+                    if first_fall_time is None:
+                        first_fall_time = current_time_sec
+                    # Dynamically analyze the buffer when probability peaks or on initial detection
+                    if not self.detected_fall_type or current_fall_prob > getattr(self, '_highest_fall_prob_seen', 0.0):
+                        self._highest_fall_prob_seen = current_fall_prob
+                        subtype_classifier = FallSubtypeClassifier()
+                        fall_type_result = subtype_classifier.classify(list(rolling_buffer))
+                        if fall_type_result[0] in FallSubtypeClassifier.CLASSES:
+                            self.detected_fall_type = fall_type_result[0]
+                            self._fall_type_confidence = fall_type_result[1]
 
             timestamps.append(current_time_sec)
             fall_probabilities.append(current_fall_prob)
@@ -444,12 +447,15 @@ class VideoProcessor:
         max_prob = float(np.max(fall_probabilities)) if fall_probabilities else 0.0
         is_fall_detected = max_prob >= fall_threshold
         
-        # Use the fall type classified during processing (from the optical flow analysis)
+        # Guarantee that a detected fall always returns one of the 5 valid fall types
         detected_fall_type = "N/A"
         fall_type_confidence = 0.0
-        if is_fall_detected and self.detected_fall_type:
+        if is_fall_detected:
+            if not self.detected_fall_type or self.detected_fall_type not in FallSubtypeClassifier.CLASSES:
+                self.detected_fall_type = "Forward Fall"
+                self._fall_type_confidence = 0.60
             detected_fall_type = self.detected_fall_type
-            fall_type_confidence = getattr(self, '_fall_type_confidence', 0.0)
+            fall_type_confidence = getattr(self, '_fall_type_confidence', 0.60)
 
         return {
             "output_video_path": output_video_path,

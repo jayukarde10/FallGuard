@@ -1,4 +1,4 @@
-import os
+﻿import os
 import time
 import tempfile
 import cv2
@@ -233,7 +233,7 @@ if page == "🎬 Main Dashboard":
     st.markdown("### 📂 Video Source")
     col_src1, col_src2 = st.columns([1, 2.5])
     with col_src1:
-        input_mode = st.radio("Select Input Source", ["GMDCSA24 Dataset", "Custom Video Upload"], index=0)
+        input_mode = st.radio("Select Input Source", ["GMDCSA24 Dataset", "Custom Video Upload", "📷 Live Camera Feed"], index=0)
     selected_video_path = None
     selected_meta = None
     with col_src2:
@@ -251,7 +251,7 @@ if page == "🎬 Main Dashboard":
                     if selected_meta: selected_video_path = selected_meta['video_path']
                 else:
                     st.warning("No videos found.")
-        else:
+        elif input_mode == "Custom Video Upload":
             uploaded_file = st.file_uploader("Upload MP4 / AVI / MOV", type=["mp4", "avi", "mov"])
             if uploaded_file is not None:
                 import tempfile
@@ -260,6 +260,130 @@ if page == "🎬 Main Dashboard":
                 tfile.flush()
                 selected_video_path = tfile.name
                 selected_meta = {'subject': "Custom", 'category': "User Upload", 'file_name': uploaded_file.name, 'video_path': selected_video_path, 'length_sec': 0.0, 'time_of_recording': "Unknown", 'attire': "Unknown", 'description': "User uploaded video", 'classes_raw': "Custom", 'intervals': [], 'fall_count': 0}
+        else:
+            # -- Live Camera Feed -------------------------------------------------
+            st.markdown("""
+            <div style="background:#F5F1E9; border:1px solid #DDD6CA; border-radius:8px; padding:14px 18px; margin-bottom:12px;">
+                <span style="font-size:1.1rem; font-weight:600;">📷 Live Camera Recording</span><br>
+                <span style="color:#77736B; font-size:0.88rem;">
+                    Record a short clip from your webcam. The recorded video will be
+                    processed through the C3D fall detection &amp; facial anonymization
+                    pipeline, exactly like an uploaded video.
+                </span>
+            </div>
+            """, unsafe_allow_html=True)
+
+            cam_col1, cam_col2 = st.columns(2)
+            with cam_col1:
+                camera_index = st.number_input(
+                    "Camera Device Index",
+                    min_value=0, max_value=10, value=0, step=1,
+                    help="0 = default webcam. Try 1 or 2 if you have multiple cameras."
+                )
+            with cam_col2:
+                record_seconds = st.slider(
+                    "Recording Duration (seconds)",
+                    min_value=3, max_value=30, value=8, step=1
+                )
+
+            # Check if a recording already exists in this session
+            if "camera_video_path" in st.session_state and st.session_state.get("camera_video_path") and os.path.exists(st.session_state.get("camera_video_path", "")):
+                selected_video_path = st.session_state["camera_video_path"]
+                selected_meta = st.session_state.get("camera_meta", None)
+                st.success(f"✅ Camera recording ready ({os.path.getsize(selected_video_path) / 1024:.0f} KB). Click **'🚀 Process & Analyze Video'** below to run fall detection.")
+
+            record_btn = st.button("🎥 Start Recording", type="secondary")
+            if record_btn:
+                import datetime as _dt
+
+                cam_placeholder = st.empty()
+                cam_progress = st.progress(0, text="Initializing camera...")
+
+                cap = cv2.VideoCapture(int(camera_index))
+                if not cap.isOpened():
+                    st.error(f"❌ Could not open camera device {camera_index}. Please check that your webcam is connected and not in use by another application.")
+                else:
+                    cam_fps = cap.get(cv2.CAP_PROP_FPS)
+                    if cam_fps <= 0 or cam_fps > 120:
+                        cam_fps = 30.0
+                    cam_width = int(cap.get(cv2.CAP_PROP_FRAME_WIDTH)) or 640
+                    cam_height = int(cap.get(cv2.CAP_PROP_FRAME_HEIGHT)) or 480
+
+                    total_record_frames = int(cam_fps * record_seconds)
+
+                    # Create output file in the existing fallguard_output directory
+                    cam_out_dir = os.path.join(os.getcwd(), "fallguard_output")
+                    os.makedirs(cam_out_dir, exist_ok=True)
+                    cam_tmp_path = os.path.join(cam_out_dir, f"camera_rec_{int(time.time())}.mp4")
+
+                    fourcc = cv2.VideoWriter_fourcc(*'mp4v')
+                    cam_writer = cv2.VideoWriter(cam_tmp_path, fourcc, cam_fps, (cam_width, cam_height))
+
+                    recorded_count = 0
+                    cam_progress.progress(0, text=f"🔴 Recording... 0/{record_seconds}s")
+
+                    while recorded_count < total_record_frames:
+                        ret, cam_frame = cap.read()
+                        if not ret:
+                            break
+                        cam_writer.write(cam_frame)
+                        recorded_count += 1
+
+                        elapsed_sec = recorded_count / cam_fps
+                        frac = min(1.0, recorded_count / total_record_frames)
+                        cam_progress.progress(frac, text=f"🔴 Recording... {elapsed_sec:.1f}/{record_seconds}s")
+
+                        # Show a live preview every 5th frame
+                        if recorded_count % 5 == 0:
+                            preview_rgb = cv2.cvtColor(cam_frame, cv2.COLOR_BGR2RGB)
+                            cam_placeholder.image(preview_rgb, caption=f"Live Preview — {elapsed_sec:.1f}s", use_container_width=True)
+
+                    cap.release()
+                    cam_writer.release()
+
+                    # Re-encode to H.264 for browser playback (same as existing pipeline)
+                    cam_h264_path = cam_tmp_path.replace(".mp4", "_h264.mp4")
+                    try:
+                        import imageio_ffmpeg
+                        ffmpeg_exe = imageio_ffmpeg.get_ffmpeg_exe()
+                        import subprocess as _sp
+                        _sp.run([
+                            ffmpeg_exe, "-y",
+                            "-i", cam_tmp_path,
+                            "-vcodec", "libx264",
+                            "-pix_fmt", "yuv420p",
+                            "-preset", "ultrafast",
+                            "-crf", "23",
+                            "-movflags", "faststart",
+                            cam_h264_path
+                        ], stdout=_sp.DEVNULL, stderr=_sp.DEVNULL, check=True)
+                        if os.path.exists(cam_tmp_path):
+                            os.remove(cam_tmp_path)
+                        cam_final_path = cam_h264_path
+                    except Exception:
+                        cam_final_path = cam_tmp_path
+
+                    cam_placeholder.empty()
+                    cam_progress.progress(1.0, text="✅ Recording complete!")
+
+                    rec_timestamp = _dt.datetime.now().strftime("%Y-%m-%d %H:%M:%S")
+                    selected_video_path = cam_final_path
+                    selected_meta = {
+                        'subject': "Live Camera",
+                        'category': "Camera Recording",
+                        'file_name': os.path.basename(cam_final_path),
+                        'video_path': cam_final_path,
+                        'length_sec': float(record_seconds),
+                        'time_of_recording': rec_timestamp,
+                        'attire': "Unknown",
+                        'description': f"Live webcam recording ({record_seconds}s) captured at {rec_timestamp}",
+                        'classes_raw': "Live",
+                        'intervals': [],
+                        'fall_count': 0
+                    }
+                    st.session_state["camera_video_path"] = cam_final_path
+                    st.session_state["camera_meta"] = selected_meta
+                    st.success(f"✅ Recorded {recorded_count} frames ({record_seconds}s) from camera {camera_index}. Click **'🚀 Process & Analyze Video'** below.")
     st.session_state["selected_video_path"] = selected_video_path
     st.session_state["selected_meta"] = selected_meta
     if selected_video_path and os.path.exists(selected_video_path):
@@ -350,12 +474,12 @@ if page == "🎬 Main Dashboard":
             with m_col4:
                 fall_type = res.get('detected_fall_type', 'N/A') if res.get('is_fall_detected', False) else 'N/A'
                 fall_type_conf = res.get('fall_type_confidence', 0.0)
-                fall_type_display = fall_type.upper() if fall_type not in ('N/A', 'Uncertain Fall Type') else fall_type
-                conf_text = f" ({fall_type_conf*100:.0f}%)" if fall_type_conf > 0 else ""
+                fall_type_display = fall_type if fall_type != 'N/A' else 'N/A'
+                conf_text = f" ({fall_type_conf*100:.0f}%)" if (fall_type_conf > 0 and fall_type != 'N/A') else ""
                 st.markdown(f"""<div class="metric-card">
                     <div class="metric-label">Detected Fall Type</div>
                     <div class="metric-value" style="font-size: 1.0rem;">{fall_type_display}{conf_text}</div>
-                    <div class="metric-sub">Optical flow motion analysis</div>
+                    <div class="metric-sub">Movement pattern classification</div>
                 </div>""", unsafe_allow_html=True)
             # Secondary metrics
             st.markdown("<br>", unsafe_allow_html=True)
